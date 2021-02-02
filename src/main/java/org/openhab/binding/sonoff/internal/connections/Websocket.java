@@ -13,7 +13,6 @@ import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 import org.eclipse.jetty.websocket.client.ClientUpgradeRequest;
 import org.eclipse.jetty.websocket.client.WebSocketClient;
-import org.eclipse.smarthome.io.net.http.WebSocketFactory;
 import org.openhab.binding.sonoff.internal.Constants;
 import org.openhab.binding.sonoff.internal.Utils;
 import org.openhab.binding.sonoff.internal.dto.api.Device;
@@ -22,6 +21,7 @@ import org.openhab.binding.sonoff.internal.dto.api.WsServerResponse;
 import org.openhab.binding.sonoff.internal.dto.payloads.WsLoginRequest;
 import org.openhab.binding.sonoff.internal.dto.payloads.WsUpdate;
 import org.openhab.binding.sonoff.internal.listeners.WebSocketConnectionListener;
+import org.openhab.core.io.net.http.WebSocketFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -127,7 +127,7 @@ public class Websocket {
 
     @OnWebSocketMessage
     public void onMessage(String message) {
-        logger.debug("Websocket Message recieved: {}", message);
+        logger.debug("Sonoff - Websocket Message recieved: {}", message);
         if (message.contains("pong")) {
             logger.debug("Websocket Pong Response");
         } else {

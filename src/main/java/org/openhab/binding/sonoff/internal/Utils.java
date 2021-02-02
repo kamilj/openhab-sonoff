@@ -51,7 +51,7 @@ public class Utils {
             String ivEncoded = new String(Base64.getEncoder().encode(iv), StandardCharsets.UTF_8);
             String payloadEncoded = new String(Base64.getEncoder().encode(ciphertext), StandardCharsets.UTF_8);
             JsonObject newPayload = new JsonObject();
-            newPayload.addProperty("seq", seq);
+            // newPayload.addProperty("seq", seq);
             newPayload.addProperty("sequence", Utils.getSequence() + "");
             newPayload.addProperty("deviceid", deviceId);
             newPayload.addProperty("selfApikey", "123");

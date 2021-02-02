@@ -25,15 +25,6 @@ import javax.jmdns.ServiceInfo;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.eclipse.smarthome.core.thing.Bridge;
-import org.eclipse.smarthome.core.thing.ChannelUID;
-import org.eclipse.smarthome.core.thing.Thing;
-import org.eclipse.smarthome.core.thing.ThingStatus;
-import org.eclipse.smarthome.core.thing.binding.BaseBridgeHandler;
-import org.eclipse.smarthome.core.thing.binding.ThingHandlerService;
-import org.eclipse.smarthome.core.types.Command;
-import org.eclipse.smarthome.io.net.http.HttpClientFactory;
-import org.eclipse.smarthome.io.net.http.WebSocketFactory;
 import org.openhab.binding.sonoff.internal.config.AccountConfig;
 import org.openhab.binding.sonoff.internal.connections.Api;
 import org.openhab.binding.sonoff.internal.connections.Lan;
@@ -44,6 +35,15 @@ import org.openhab.binding.sonoff.internal.listeners.DeviceStateListener;
 import org.openhab.binding.sonoff.internal.listeners.MDnsListener;
 import org.openhab.binding.sonoff.internal.listeners.WebSocketConnectionListener;
 import org.openhab.binding.sonoff.internal.sonoffDiscoveryService;
+import org.openhab.core.io.net.http.HttpClientFactory;
+import org.openhab.core.io.net.http.WebSocketFactory;
+import org.openhab.core.thing.Bridge;
+import org.openhab.core.thing.ChannelUID;
+import org.openhab.core.thing.Thing;
+import org.openhab.core.thing.ThingStatus;
+import org.openhab.core.thing.binding.BaseBridgeHandler;
+import org.openhab.core.thing.binding.ThingHandlerService;
+import org.openhab.core.types.Command;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,7 +69,6 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketConnec
     private @Nullable Api api;
     private @Nullable AccountConfig config;
     private @Nullable ScheduledFuture<?> tokenTask;
-    private @Nullable ScheduledFuture<?> udpTask;
     private @Nullable ScheduledFuture<?> connectionTask;
     private final Gson gson;
     private Boolean lanOnline = false;
@@ -77,7 +76,6 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketConnec
     private String mode = "";
     private final Map<String, DeviceStateListener> deviceStateListener = new HashMap<>();
     final Map<String, Device> deviceState = new HashMap<>();
-    // private @Nullable ReceiverThread udp;
 
     public AccountHandler(Bridge thing, WebSocketFactory webSocketFactory, HttpClientFactory httpClientFactory,
             Gson gson) {
@@ -101,7 +99,6 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketConnec
 
     @Override
     public void initialize() {
-        // udp = new ReceiverThread();
         config = this.getConfigAs(AccountConfig.class);
         mode = config.accessmode.toString();
         api = new Api(config, httpClientFactory, gson);
@@ -149,7 +146,6 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketConnec
             }
         };
         connectionTask = scheduler.scheduleWithFixedDelay(connect, 10, 60, TimeUnit.SECONDS);
-        // scheduler.schedule(udp, 5, TimeUnit.MILLISECONDS);
     }
 
     @Override

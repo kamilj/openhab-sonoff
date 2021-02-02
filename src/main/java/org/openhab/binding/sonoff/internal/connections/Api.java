@@ -15,7 +15,6 @@ import javax.crypto.spec.SecretKeySpec;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.ContentResponse;
 import org.eclipse.jetty.client.util.StringContentProvider;
-import org.eclipse.smarthome.io.net.http.HttpClientFactory;
 import org.openhab.binding.sonoff.internal.Constants;
 import org.openhab.binding.sonoff.internal.Utils;
 import org.openhab.binding.sonoff.internal.config.AccountConfig;
@@ -25,6 +24,7 @@ import org.openhab.binding.sonoff.internal.dto.api.WsServerResponse;
 import org.openhab.binding.sonoff.internal.dto.payloads.ApiLoginRequest;
 import org.openhab.binding.sonoff.internal.dto.payloads.ApiStatusChange;
 import org.openhab.binding.sonoff.internal.dto.payloads.WsServerRequest;
+import org.openhab.core.io.net.http.HttpClientFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
