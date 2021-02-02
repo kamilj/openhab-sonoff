@@ -46,7 +46,7 @@
 		<description>Current</description>
 	</channel-type>
 	<channel-type id="online">
-		<item-type>Switch</item-type>
+		<item-type>String</item-type>
 		<label>Cloud Connected</label>
 		<description>Currently has connection to the cloud</description>
 	</channel-type>
