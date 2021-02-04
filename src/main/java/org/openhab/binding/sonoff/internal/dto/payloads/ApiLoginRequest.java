@@ -1,22 +1,16 @@
 package org.openhab.binding.sonoff.internal.dto.payloads;
 
+import org.openhab.binding.sonoff.internal.helpers.DtoHelper;
+
 public class ApiLoginRequest {
 
-    private String appid;
+    private String appid = DtoHelper.appid;
+    private Long ts = DtoHelper.getTs();
+    private Integer version = DtoHelper.version;
+    private String nonce = DtoHelper.getNonce();
     private String email;
     private String phoneNumber;
     private String password;
-    private String ts;
-    private String version;
-    private String nonce;
-
-    public String getAppid() {
-        return appid;
-    }
-
-    public void setAppid(String appid) {
-        this.appid = appid;
-    }
 
     public String getEmail() {
         return email;
@@ -40,30 +34,6 @@ public class ApiLoginRequest {
 
     public void setPassword(String password) {
         this.password = password;
-    }
-
-    public String getTs() {
-        return ts;
-    }
-
-    public void setTs(String ts) {
-        this.ts = ts;
-    }
-
-    public String getVersion() {
-        return version;
-    }
-
-    public void setVersion(String version) {
-        this.version = version;
-    }
-
-    public String getNonce() {
-        return nonce;
-    }
-
-    public void setNonce(String nonce) {
-        this.nonce = nonce;
     }
 
     @Override

@@ -131,6 +131,15 @@ public class Params implements Serializable {
     @SerializedName("bindInfos")
     @Expose
     private BindInfos bindInfos;
+    @SerializedName("partnerApikey")
+    @Expose
+    private String partnerApikey;
+    @SerializedName("cmd")
+    @Expose
+    private String cmd;
+    @SerializedName("rfChl")
+    @Expose
+    private Integer rfChl;
 
     private final static long serialVersionUID = 1205249120703729170L;
 
@@ -444,5 +453,29 @@ public class Params implements Serializable {
 
     public void setBindInfos(BindInfos bindInfos) {
         this.bindInfos = bindInfos;
+    }
+
+    public String getPartnerApikey() {
+        return this.partnerApikey;
+    }
+
+    public void setPartnerApikey(String partnerApikey) {
+        this.partnerApikey = partnerApikey;
+    }
+
+    public String getCmd() {
+        return this.cmd;
+    }
+
+    public void setCmd(String cmd) {
+        this.cmd = cmd;
+    }
+
+    public Integer getRfChl() {
+        return this.rfChl;
+    }
+
+    public void setRfChl(Integer rfChl) {
+        this.rfChl = rfChl;
     }
 }

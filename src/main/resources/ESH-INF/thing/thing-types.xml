@@ -16,9 +16,9 @@
 				<label>Password</label>
 				<description>Password</description>
 			</parameter>
-			<parameter name="region" type="text" required="true">
-				<label>Region</label>
-				<description>Region</description>
+			<parameter name="countryCode" type="text" required="true">
+				<label>Country Code</label>
+				<description>Phone number country code, ie +44,+00,+32</description>
 			</parameter>
 			<parameter name="ipaddress" type="text" required="true">
 				<label>IP Address</label>
@@ -34,8 +34,46 @@
 				</options>
 			</parameter>
 		</config-description>
-
 	</bridge-type>
+
+	<bridge-type id="28">
+		<supported-bridge-type-refs>
+			<bridge-type-ref id="account"/>
+		</supported-bridge-type-refs>
+		<label>RF Bridge</label>
+		<description>Sonoff RF Bridge</description>
+		<channels>
+			<channel id="offlineTime" typeId="offlineTime"/>
+			<channel id="online" typeId="online"/>
+			<channel id="rssi" typeId="rssi"/>
+		</channels>
+		<config-description>
+			<parameter name="deviceId" type="text" required="true">
+				<label>Device ID</label>
+				<description>Device ID</description>
+			</parameter>
+		</config-description>
+	</bridge-type>
+
+	<thing-type id="remote4">
+		<supported-bridge-type-refs>
+			<bridge-type-ref id="28"/>
+		</supported-bridge-type-refs>
+		<label>Rf Remote</label>
+		<description>RF Remote</description>
+		<channels>
+			<channel id="switch" typeId="switch"/>
+			<channel id="offlineTime" typeId="offlineTime"/>
+			<channel id="online" typeId="online"/>
+			<channel id="rssi" typeId="rssi"/>
+		</channels>
+		<config-description>
+			<parameter name="remoteid" type="text" required="true">
+				<label>Remote ID</label>
+				<description>Remote ID</description>
+			</parameter>
+		</config-description>
+	</thing-type>
 
 	<thing-type id="1">
 		<supported-bridge-type-refs>

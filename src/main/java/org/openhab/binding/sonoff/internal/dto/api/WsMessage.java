@@ -41,10 +41,20 @@ public class WsMessage implements Serializable {
     @SerializedName("uiActive")
     @Expose
     private String uiActive;
-
     @SerializedName("action")
     @Expose
     private String action;
+    @SerializedName("reason")
+    @Expose
+    private String reason;
+
+    public String getReason() {
+        return this.reason;
+    }
+
+    public void setReason(String reason) {
+        this.reason = reason;
+    }
 
     public String getAction() {
         return this.action;

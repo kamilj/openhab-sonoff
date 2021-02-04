@@ -30,6 +30,27 @@
 		<description>Switch</description>
 	</channel-type>
 
+	<channel-type id="button0">
+		<item-type>Switch</item-type>
+		<label>Button</label>
+		<description>Button</description>
+	</channel-type>
+	<channel-type id="button1">
+		<item-type>Switch</item-type>
+		<label>Button</label>
+		<description>Button</description>
+	</channel-type>
+	<channel-type id="button2">
+		<item-type>Switch</item-type>
+		<label>Button</label>
+		<description>Button</description>
+	</channel-type>
+	<channel-type id="button3">
+		<item-type>Switch</item-type>
+		<label>Button</label>
+		<description>Button</description>
+	</channel-type>
+
 	<channel-type id="power">
 		<item-type>Number</item-type>
 		<label>Power</label>

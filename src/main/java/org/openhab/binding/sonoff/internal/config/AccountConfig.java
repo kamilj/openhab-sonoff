@@ -23,14 +23,14 @@ public class AccountConfig {
 
     public String email;
     public String password;
-    public String region;
+    public String countryCode;
     public String ipaddress;
     public String accessmode;
 
     @Override
     public String toString() {
-        return "[email=" + email + ", password=" + getPasswordForPrinting() + ", region=" + region + ", accessmode="
-                + accessmode + ", ipaddress=" + ipaddress + "]";
+        return "[email=" + email + ", password=" + getPasswordForPrinting() + ", countryCode=" + countryCode
+                + ", accessmode=" + accessmode + ", ipaddress=" + ipaddress + "]";
     }
 
     private String getPasswordForPrinting() {

@@ -3,6 +3,8 @@ package org.openhab.binding.sonoff.internal.dto.payloads;
 
 import java.io.Serializable;
 
+import org.openhab.binding.sonoff.internal.helpers.DtoHelper;
+
 import com.google.gson.JsonObject;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
@@ -29,22 +31,12 @@ public class WsUpdate implements Serializable {
     @Expose
     private String selfApikey;
     private String at;
-    private Long ts;
-    private String sequence;
-    private int version = 8;
-    private String nonce;
+    private Long ts = DtoHelper.getTs() / 1000;
+    private Long sequence = DtoHelper.getSequence();
+    private Integer version = DtoHelper.version;
+    private String nonce = DtoHelper.getNonce();
 
-    public WsUpdate(String at, String apikey, String selfApikey, String deviceid, String nonce, JsonObject params,
-            long sequence) {
-        this.at = at;
-        this.apikey = apikey;
-        this.nonce = nonce;
-        this.deviceid = deviceid;
-        this.selfApikey = selfApikey;
-        this.params = params;
-        this.ts = sequence / 1000;
-        this.sequence = sequence + "";
-    }
+    private final static long serialVersionUID = -1947653206187395468L;
 
     public String getAt() {
         return this.at;
@@ -58,35 +50,17 @@ public class WsUpdate implements Serializable {
         return this.ts;
     }
 
-    public void setTs(Long ts) {
-        this.ts = ts;
-    }
-
     public Long getSequence() {
-        return Long.parseLong(sequence);
-    }
-
-    public void setSequence(String sequence) {
-        this.sequence = sequence;
+        return sequence;
     }
 
     public int getVersion() {
         return this.version;
     }
 
-    public void setVersion(int version) {
-        this.version = version;
-    }
-
     public String getNonce() {
         return this.nonce;
     }
-
-    public void setNonce(String nonce) {
-        this.nonce = nonce;
-    }
-
-    private final static long serialVersionUID = -1947653206187395468L;
 
     public String getAction() {
         return action;
@@ -100,12 +74,12 @@ public class WsUpdate implements Serializable {
         this.deviceid = deviceid;
     }
 
-    public String getApikey() {
-        return apikey;
-    }
-
     public void setApikey(String apikey) {
         this.apikey = apikey;
+    }
+
+    public String getApikey() {
+        return apikey;
     }
 
     public String getUserAgent() {
