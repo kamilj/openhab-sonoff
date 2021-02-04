@@ -3,34 +3,32 @@ package org.openhab.binding.sonoff.internal.connections;
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
 import java.util.Date;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
-
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.ContentResponse;
 import org.eclipse.jetty.client.util.StringContentProvider;
-import org.openhab.binding.sonoff.internal.Constants;
 import org.openhab.binding.sonoff.internal.Utils;
 import org.openhab.binding.sonoff.internal.config.AccountConfig;
 import org.openhab.binding.sonoff.internal.dto.api.ApiLoginResponse;
+import org.openhab.binding.sonoff.internal.dto.api.ApiRegionResponse;
 import org.openhab.binding.sonoff.internal.dto.api.Devices;
 import org.openhab.binding.sonoff.internal.dto.api.WsServerResponse;
 import org.openhab.binding.sonoff.internal.dto.payloads.ApiLoginRequest;
+import org.openhab.binding.sonoff.internal.dto.payloads.ApiRegionCode;
 import org.openhab.binding.sonoff.internal.dto.payloads.ApiStatusChange;
-import org.openhab.binding.sonoff.internal.dto.payloads.WsServerRequest;
+import org.openhab.binding.sonoff.internal.dto.payloads.GeneralRequest;
+import org.openhab.binding.sonoff.internal.helpers.DtoHelper;
+import org.openhab.binding.sonoff.internal.listeners.ConnectionListener;
 import org.openhab.core.io.net.http.HttpClientFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 
 public class Api {
 
@@ -38,17 +36,16 @@ public class Api {
     private final Gson gson;
     private final HttpClient httpClient;
     private final AccountConfig config;
-    private final String baseUrl;
+    private final ConnectionListener listener;
+    private String baseUrl = "";
     private String apiKey = "";
     private String at = "";
 
-    private Boolean connected = false;
-
-    public Api(AccountConfig config, HttpClientFactory httpClientFactory, Gson gson) {
+    public Api(AccountConfig config, ConnectionListener listener, HttpClientFactory httpClientFactory, Gson gson) {
         this.gson = gson;
         this.config = config;
         this.httpClient = httpClientFactory.createHttpClient("sonoffApi");
-        this.baseUrl = "https://" + config.region + "-api.coolkit.cc:8080/";
+        this.listener = listener;
     }
 
     public String getApiKey() {
@@ -71,95 +68,132 @@ public class Api {
     public void stop() {
         try {
             httpClient.stop();
-            httpClient.destroy();
+            // httpClient.destroy();
         } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }
 
-    public Boolean login() {
-        long ts = new Date().getTime();
-        ApiLoginResponse loginResponse = new ApiLoginResponse();
+    public void login() {
         String url = baseUrl + "api/user/login";
-        ApiLoginRequest loginRequest = new ApiLoginRequest();
-        loginRequest.setAppid(Constants.appid);
-        loginRequest.setEmail(config.email);
-        loginRequest.setPassword(config.password);
-        loginRequest.setTs(ts + "");
-        loginRequest.setVersion("8");
-        loginRequest.setNonce(Utils.getNonce());
-        logger.debug("Login url:{}", url);
-        logger.debug("Login Request:{}", loginRequest.toString());
-        logger.debug("Login Request url:{}", url);
+        ApiLoginRequest request = new ApiLoginRequest();
+        ApiLoginResponse response = new ApiLoginResponse();
+        request.setEmail(config.email);
+        request.setPassword(config.password);
+        logger.debug("Api Login Request:{}", gson.toJson(request));
         try {
-            ContentResponse response = httpClient.newRequest(url).header("accept", "application/json")
+            ContentResponse contentResponse = httpClient.newRequest(url).header("accept", "application/json")
                     .header("Content-Type", "application/json")
-                    .header("Authorization", "Sign " + getAuthMac(gson.toJson(loginRequest))).method("POST")
-                    .content(new StringContentProvider(gson.toJson(loginRequest)), "application/json").send();
-            loginResponse = gson.fromJson(response.getContentAsString(), ApiLoginResponse.class);
-            connected = (loginResponse.getError() > 0) ? false : true;
-            logger.debug("Login Response Raw:{}", response.getContentAsString());
-            at = loginResponse.getAt();
-            apiKey = loginResponse.getUser().getApikey();
-            return connected;
+                    .header("Authorization", "Sign " + Utils.getAuthMac(gson.toJson(request))).method("POST")
+                    .content(new StringContentProvider(gson.toJson(request)), "application/json").send();
+            logger.debug("Api Login Response:{}", contentResponse.getContentAsString());
+            response = gson.fromJson(contentResponse.getContentAsString(), ApiLoginResponse.class);
+            if (response.getError() > 0) {
+                listener.onError("api", response.getError() + "", response.getMsg());
+            } else {
+                at = response.getAt();
+                apiKey = response.getUser().getApikey();
+                listener.ApiconnectionOpen();
+            }
         } catch (InvalidKeyException | UnsupportedEncodingException | NoSuchAlgorithmException | InterruptedException
                 | TimeoutException | ExecutionException e) {
-            logger.debug("Api Couldnt log in:{}", e);
-            return connected;
+            listener.onError("api", e.getCause().toString(), e.getMessage());
+        }
+    }
+
+    public void getRegion() {
+        ApiRegionCode request = new ApiRegionCode();
+        ApiRegionResponse response = new ApiRegionResponse();
+        request.setCountry_code(config.countryCode);
+        logger.debug("Api Region Request:{}", gson.toJson(request));
+        String url = "https://api.coolkit.cc:8080/api/user/region?lang=en&appid=" + request.getAppid() + "&ts="
+                + request.getTs() + "&country_code=" + request.getCountry_code() + "&nonce=" + request.getNonce()
+                + "&version=" + request.getVersion() + "&getTags=1";
+        try {
+            ContentResponse contentResponse = httpClient.newRequest(url).header("accept", "application/json")
+                    .header("Content-Type", "application/json; utf-8")
+                    .header("Authorization", "Sign " + Utils.getAuthMac(gson.toJson(request))).method("GET").send();
+            logger.debug("Api Region Response:{}", contentResponse.getContentAsString());
+            response = gson.fromJson(contentResponse.getContentAsString(), ApiRegionResponse.class);
+            if (!response.getError().equals("0") || response.getError() == null) {
+                listener.onError("api", response.getRtnCode(), response.getRtnMsg());
+            } else {
+                baseUrl = "https://" + response.getRegion() + "-api.coolkit.cc:8080/";
+            }
+        } catch (Exception e) {
+            listener.onError("api", e.getCause().toString(), e.getMessage());
         }
     }
 
     public WsServerResponse getWsServer() {
         String url = baseUrl + "dispatch/app";
-        WsServerRequest request = new WsServerRequest(Constants.appid, Utils.getNonce());
+        GeneralRequest request = new GeneralRequest();
+        request.setAccept("ws");
+        WsServerResponse response = new WsServerResponse();
+        logger.debug("Websocket URL Request:{}", gson.toJson(request));
         try {
-            ContentResponse response = httpClient.newRequest(url).header("accept", "application/json")
+            ContentResponse contentResponse = httpClient.newRequest(url).header("accept", "application/json")
                     .header("Content-Type", "application/json; utf-8").header("Authorization", "Bearer " + at)
                     .method("POST").content(new StringContentProvider(gson.toJson(request)), "application/json").send();
-            logger.debug("Get WebSocket Server Response Raw:{}", response.getContentAsString());
-            return gson.fromJson(response.getContentAsString(), WsServerResponse.class);
+            logger.debug("Websocket URL Response:{}", contentResponse.getContentAsString());
+            response = gson.fromJson(contentResponse.getContentAsString(), WsServerResponse.class);
+            if (response.getError() > 0) {
+                listener.onError("api", response.getError() + "", response.getReason());
+                return null;
+            } else {
+                return response;
+            }
         } catch (Exception e) {
-            logger.debug("Error Fetching Websocket Server:{}", e);
+            listener.onError("api", e.getCause().toString(), e.getMessage());
             return null;
         }
     }
 
-    public void setStatus(String data, String deviceid, String deviceKey) {
+    public void setStatusApi(String params, String deviceid, String deviceKey) {
         String url = baseUrl + "api/user/device/status";
-        long ts = new Date().getTime();
-        JsonObject payload = new JsonParser().parse(data).getAsJsonObject();
-        ApiStatusChange request = new ApiStatusChange(deviceid, Constants.appid, ts, payload);
+        ApiStatusChange request = new ApiStatusChange();
+        request.setDeviceid(deviceid);
+        request.setParams(params);
+        logger.debug("Api Set Status Request:{}", gson.toJson(request));
         try {
             ContentResponse response = httpClient.newRequest(url).header("accept", "application/json")
                     .header("Content-Type", "application/json; utf-8").header("Authorization", "Bearer " + at)
                     .method("POST").content(new StringContentProvider(gson.toJson(request)), "application/json").send();
-            logger.debug("Get Api Server Response Raw:{}", response.getContentAsString());
-            // return gson.fromJson(response.getContentAsString(), WsServerResponse.class);
+            logger.debug("Api Set Status Response :{}", response.getContentAsString());
         } catch (Exception e) {
-            logger.debug("Error Sending Device Status:{}", e);
+            listener.onError("api", e.getCause().toString(), e.getMessage());
         }
     }
 
     public Devices discover() {
-        String url = baseUrl + "api/user/device?lang=en&appid=" + Constants.appid + "&ts=" + new Date().getTime()
+        Devices response = new Devices();
+        GeneralRequest request = new GeneralRequest();
+        String url = baseUrl + "api/user/device?lang=en&appid=" + request.getAppid() + "&ts=" + request.getTs()
+                + "&version=" + request.getVersion() + "&getTags=1";
+        logger.debug("Api Discovery Request:{}", url);
+        String url2 = baseUrl + "api/user/device?lang=en&appid=" + DtoHelper.appid + "&ts=" + new Date().getTime()
                 + "&version=8&getTags=1";
-        ContentResponse response;
+        logger.debug("Api Discovery Request:{}", at);
         try {
-            response = httpClient.newRequest(url).header("accept", "text/html").header("connection", "Keep-Alive")
-                    .header("Authorization", "Bearer " + at).method("GET").send();
-            logger.info("Discovery response:{}", response.getContentAsString());
+            ContentResponse contentResponse = httpClient.newRequest(url2).header("accept", "text/html")
+                    .header("connection", "Keep-Alive").header("Authorization", "Bearer " + at).method("GET").send();
+            logger.debug("Api Discovery response:{}", contentResponse.getContentAsString());
+            response = gson.fromJson(contentResponse.getContentAsString(), Devices.class);
+            if (response.getError() > 0) {
+                listener.onError("api", response.getError() + "", "Not yet set in the binding");
+                return null;
+            } else {
+                return response;
+            }
         } catch (InterruptedException | TimeoutException | ExecutionException e) {
-            logger.warn("Api Couldnt discover devices:{}", e);
+            listener.onError("api", e.getCause().toString(), e.getMessage());
             return null;
         }
-        return gson.fromJson(response.getContentAsString(), Devices.class);
     }
 
-    public void sendLocalUpdate(String data, String command, String deviceid, String ipaddress, String deviceKey,
+    public void setStatusLan(String data, String command, String deviceid, String ipaddress, String deviceKey,
             String seq) {
-        logger.debug("Unencrypted payload: {}", data);
-        logger.debug("Sonoff - sendUpdate DeviceId: {}", deviceid);
         JsonObject payload = Utils.encrypt(data, deviceKey, deviceid, seq);
         String url = "http://" + ipaddress + ":8081/zeroconf/" + command;
         logger.debug("Updating url: {}", url);
@@ -174,17 +208,5 @@ public class Api {
         } catch (Exception e) {
             logger.warn("Sonoff - Failed to send update:{}", e);
         }
-    }
-
-    public static String getAuthMac(String data)
-            throws UnsupportedEncodingException, NoSuchAlgorithmException, InvalidKeyException {
-        Mac sha256_HMAC = null;
-        byte[] byteKey = Constants.appSecret.getBytes("UTF-8");
-        final String HMAC_SHA256 = "HmacSHA256";
-        sha256_HMAC = Mac.getInstance(HMAC_SHA256);
-        SecretKeySpec keySpec = new SecretKeySpec(byteKey, HMAC_SHA256);
-        sha256_HMAC.init(keySpec);
-        byte[] mac_data = sha256_HMAC.doFinal(data.getBytes("UTF-8"));
-        return Base64.getEncoder().encodeToString(mac_data);
     }
 }

@@ -18,8 +18,6 @@ import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-import javax.measure.quantity.ElectricCurrent;
-import javax.measure.quantity.ElectricPotential;
 import javax.measure.quantity.Power;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -28,12 +26,8 @@ import org.openhab.binding.sonoff.internal.Utils;
 import org.openhab.binding.sonoff.internal.config.DeviceConfig;
 import org.openhab.binding.sonoff.internal.dto.api.Device;
 import org.openhab.binding.sonoff.internal.dto.api.Params;
-import org.openhab.binding.sonoff.internal.dto.payloads.MultiSwitch;
-import org.openhab.binding.sonoff.internal.dto.payloads.SingleSwitch;
 import org.openhab.binding.sonoff.internal.dto.payloads.UiActive;
 import org.openhab.binding.sonoff.internal.listeners.DeviceStateListener;
-import org.openhab.core.library.types.OnOffType;
-import org.openhab.core.library.types.PercentType;
 import org.openhab.core.library.types.QuantityType;
 import org.openhab.core.library.types.StringType;
 import org.openhab.core.thing.Bridge;
@@ -42,7 +36,7 @@ import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingStatus;
 import org.openhab.core.thing.ThingStatusDetail;
 import org.openhab.core.thing.ThingStatusInfo;
-import org.openhab.core.thing.binding.BaseThingHandler;
+import org.openhab.core.thing.binding.BaseBridgeHandler;
 import org.openhab.core.thing.binding.ThingHandler;
 import org.openhab.core.types.*;
 import org.slf4j.Logger;
@@ -58,7 +52,7 @@ import com.google.gson.JsonObject;
  * @author David Murton - Initial contribution
  */
 @NonNullByDefault
-public class SwitchHandler extends BaseThingHandler implements DeviceStateListener {
+public class RFBridgeHandler extends BaseBridgeHandler implements DeviceStateListener {
 
     private final Logger logger = LoggerFactory.getLogger(SwitchHandler.class);
     private @Nullable AccountHandler account;
@@ -68,7 +62,7 @@ public class SwitchHandler extends BaseThingHandler implements DeviceStateListen
     private String deviceKey = "";
     private String ipaddress = "";
 
-    public SwitchHandler(Thing thing, Gson gson) {
+    public RFBridgeHandler(Bridge thing, Gson gson) {
         super(thing);
         this.gson = gson;
     }
@@ -178,64 +172,9 @@ public class SwitchHandler extends BaseThingHandler implements DeviceStateListen
 
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
-        String data = "";
-        String endpoint = "";
-        if (command instanceof RefreshType) {
-            return;
-        } else {
-            switch (channelUID.getId()) {
-                case "switch":
-                    SingleSwitch singleSwitch = new SingleSwitch();
-                    singleSwitch.setSwitch(command.toString().toLowerCase());
-                    data = gson.toJson(singleSwitch);
-                    endpoint = "switch";
-                    logger.debug("Sonoff - Command Payload:{}", data);
-                    sendUpdate(data, endpoint, "");
-                    break;
-                case "switch0":
-                case "switch1":
-                case "switch2":
-                case "switch3":
-                    MultiSwitch params = new MultiSwitch();
-                    MultiSwitch.Switch multiSwitch = params.new Switch();
-                    Integer outlet = Integer.parseInt(channelUID.getId().substring(channelUID.getId().length() - 1));
-                    multiSwitch.setOutlet(outlet);
-                    multiSwitch.setSwitch(command.toString().toLowerCase());
-                    params.getSwitches().add(multiSwitch);
-                    data = gson.toJson(params);
-                    endpoint = "switches";
-                    sendUpdate(data, endpoint, "");
-                    break;
-            }
-        }
     }
 
     private synchronized void updateState(Device device) {
-        for (int i = 0; i < device.getParams().getSwitches().size(); i++) {
-            if (device.getParams().getSwitches().get(i).getSwitch() != null
-                    && this.thing.getChannel("switch" + device.getParams().getSwitches().get(i).getOutlet()) != null) {
-                updateState(
-                        this.thing.getChannel("switch" + device.getParams().getSwitches().get(i).getOutlet()).getUID(),
-                        device.getParams().getSwitches().get(i).getSwitch().equals("on") ? OnOffType.ON
-                                : OnOffType.OFF);
-            }
-        }
-        if (device.getParams().getSwitch() != null && this.thing.getChannel("switch") != null) {
-            updateState(this.thing.getChannel("switch").getUID(),
-                    device.getParams().getSwitch().equals("on") ? OnOffType.ON : OnOffType.OFF);
-        }
-        if (device.getParams().getPower() != null && (this.thing.getChannel("power") != null)) {
-            updateState(this.thing.getChannel("power").getUID(),
-                    new QuantityType<Power>(Float.parseFloat(device.getParams().getPower()), WATT));
-        }
-        if (device.getParams().getVoltage() != null && this.thing.getChannel("voltage") != null) {
-            updateState(this.thing.getChannel("voltage").getUID(),
-                    new QuantityType<ElectricPotential>(Float.parseFloat(device.getParams().getVoltage()), VOLT));
-        }
-        if (device.getParams().getCurrent() != null && this.thing.getChannel("current") != null) {
-            updateState(this.thing.getChannel("current").getUID(),
-                    new QuantityType<ElectricCurrent>(Float.parseFloat(device.getParams().getCurrent()), (AMPERE)));
-        }
         if (device.getParams().getRssi() != null && this.thing.getChannel("rssi") != null) {
             updateState(this.thing.getChannel("rssi").getUID(),
                     new QuantityType<Power>(device.getParams().getRssi(), (DECIBEL_MILLIWATTS)));
@@ -246,30 +185,6 @@ public class SwitchHandler extends BaseThingHandler implements DeviceStateListen
         if (device.getOnline() != null && this.thing.getChannel("online") != null) {
             updateState(this.thing.getChannel("online").getUID(),
                     new StringType(device.getOnline() ? "connected" : "disconnected"));
-        }
-        if (device.getParams().getDeviceType() != null && this.thing.getChannel("deviceType") != null) {
-            updateState(this.thing.getChannel("deviceType").getUID(),
-                    new StringType(device.getParams().getDeviceType()));
-        }
-        if (device.getParams().getMainSwitch() != null && this.thing.getChannel("mainSwitch") != null) {
-            updateState(this.thing.getChannel("mainSwitch").getUID(),
-                    new StringType(device.getParams().getMainSwitch()));
-        }
-        if (device.getParams().getCurrentTemperature() != null && this.thing.getChannel("temperature") != null) {
-            if (device.getParams().getCurrentTemperature().equals("unavailable")) {
-                updateState(this.thing.getChannel("temperature").getUID(), new QuantityType<>("0"));
-            } else {
-                updateState(this.thing.getChannel("temperature").getUID(),
-                        new QuantityType<>(device.getParams().getCurrentTemperature()));
-            }
-        }
-        if (device.getParams().getCurrentHumidity() != null && this.thing.getChannel("humidity") != null) {
-            if (device.getParams().getCurrentHumidity().equals("unavailable")) {
-                updateState(this.thing.getChannel("humidity").getUID(), new PercentType("0"));
-            } else {
-                updateState(this.thing.getChannel("humidity").getUID(),
-                        new PercentType(device.getParams().getCurrentHumidity()));
-            }
         }
     }
 

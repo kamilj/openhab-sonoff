@@ -1,38 +1,35 @@
 package org.openhab.binding.sonoff.internal;
 
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.security.AlgorithmParameters;
+import java.security.InvalidKeyException;
 import java.security.MessageDigest;
-import java.security.SecureRandom;
+import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
-import java.util.Date;
 
 import javax.crypto.Cipher;
+import javax.crypto.Mac;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.sonoff.internal.helpers.DtoHelper;
 
 import com.google.gson.JsonObject;
 
 public class Utils {
 
-    private static final String AB = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-    private static SecureRandom rnd = new SecureRandom();
-
-    static String randomString(int len) {
-        StringBuilder sb = new StringBuilder(len);
-        for (int i = 0; i < len; i++)
-            sb.append(AB.charAt(rnd.nextInt(AB.length())));
-        return sb.toString();
-    }
-
-    public static String getNonce() {
-        return randomString(8);
-    }
-
-    public static synchronized long getSequence() {
-        return new Date().getTime();
+    public static String getAuthMac(String data)
+            throws UnsupportedEncodingException, NoSuchAlgorithmException, InvalidKeyException {
+        Mac sha256_HMAC = null;
+        byte[] byteKey = DtoHelper.appSecret.getBytes("UTF-8");
+        final String HMAC_SHA256 = "HmacSHA256";
+        sha256_HMAC = Mac.getInstance(HMAC_SHA256);
+        SecretKeySpec keySpec = new SecretKeySpec(byteKey, HMAC_SHA256);
+        sha256_HMAC.init(keySpec);
+        byte[] mac_data = sha256_HMAC.doFinal(data.getBytes("UTF-8"));
+        return Base64.getEncoder().encodeToString(mac_data);
     }
 
     public static @Nullable JsonObject encrypt(String params, String deviceKey, String deviceId, String seq) {
@@ -51,8 +48,8 @@ public class Utils {
             String ivEncoded = new String(Base64.getEncoder().encode(iv), StandardCharsets.UTF_8);
             String payloadEncoded = new String(Base64.getEncoder().encode(ciphertext), StandardCharsets.UTF_8);
             JsonObject newPayload = new JsonObject();
-            // newPayload.addProperty("seq", seq);
-            newPayload.addProperty("sequence", Utils.getSequence() + "");
+            newPayload.addProperty("seq", seq);
+            newPayload.addProperty("sequence", DtoHelper.getSequence() + "");
             newPayload.addProperty("deviceid", deviceId);
             newPayload.addProperty("selfApikey", "123");
             newPayload.addProperty("iv", ivEncoded);

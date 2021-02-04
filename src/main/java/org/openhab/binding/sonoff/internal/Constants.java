@@ -31,13 +31,6 @@ import org.openhab.core.thing.ThingTypeUID;
 @NonNullByDefault
 public class Constants {
 
-    // skydiver
-    // public static final String appid = "YzfeftUVcZ6twZw1OoVKPRFYTrGEg01Q";
-    // public static final String appSecret = "4G91qSoboqYO4Y0XJ0LPPKIsq8reHdfa";
-    // bwp & AlexIT
-    public static final String appid = "oeVkj2lYFGnJu5XUtWisfW4utiN4u9Mq";
-    public static final String appSecret = "6Nz4n0xA8s8qdxQf2GqurZj2Fs55FUvM";
-
     private static final String BINDING_ID = "sonoff";
 
     // List of all Thing Type UIDs
@@ -59,21 +52,34 @@ public class Constants {
 
     public static final ThingTypeUID THING_TYPE_15 = new ThingTypeUID(BINDING_ID, "15"); // TH10 , TH16
 
+    public static final ThingTypeUID THING_TYPE_28 = new ThingTypeUID(BINDING_ID, "28"); // RF-BRIDGE (RF3)
+    public static final ThingTypeUID THING_TYPE_REMOTE4 = new ThingTypeUID(BINDING_ID, "remote4"); // 4 Button RF Remote
+
     public static final ThingTypeUID THING_TYPE_32 = new ThingTypeUID(BINDING_ID, "32"); // POWR2
 
-    public static final ThingTypeUID THING_TYPE_77 = new ThingTypeUID(BINDING_ID, "77"); // MICRO (USB) ,
+    public static final ThingTypeUID THING_TYPE_77 = new ThingTypeUID(BINDING_ID, "77"); // MICRO (USB)
 
     public static final Set<ThingTypeUID> SUPPORTED_THING_TYPE_UIDS = Collections
             .unmodifiableSet(Stream.of(THING_TYPE_ACCOUNT, THING_TYPE_1, THING_TYPE_2, THING_TYPE_3, THING_TYPE_4,
                     THING_TYPE_5, THING_TYPE_6, THING_TYPE_7, THING_TYPE_8, THING_TYPE_9,
 
-                    THING_TYPE_15, THING_TYPE_32, THING_TYPE_77).collect(Collectors.toSet()));
+                    THING_TYPE_15,
+
+                    THING_TYPE_28, THING_TYPE_REMOTE4,
+
+                    THING_TYPE_32, THING_TYPE_77
+
+            ).collect(Collectors.toSet()));
 
     public static final Set<ThingTypeUID> DISCOVERABLE_THING_TYPE_UIDS = Collections
             .unmodifiableSet(Stream.of(THING_TYPE_1, THING_TYPE_2, THING_TYPE_3, THING_TYPE_4, THING_TYPE_5,
                     THING_TYPE_6, THING_TYPE_7, THING_TYPE_8, THING_TYPE_9,
 
-                    THING_TYPE_15, THING_TYPE_32, THING_TYPE_77).collect(Collectors.toSet()));
+                    THING_TYPE_15,
+
+                    THING_TYPE_28, THING_TYPE_REMOTE4,
+
+                    THING_TYPE_32, THING_TYPE_77).collect(Collectors.toSet()));
 
     public static final Set<Integer> LAN_SUPPORTED = Collections
             .unmodifiableSet(Stream.of(1, 2, 3, 4, 5, 6, 7, 8, 9, 32, 77, 78).collect(Collectors.toSet()));
@@ -91,6 +97,8 @@ public class Constants {
         DEVICE_TYPES.put(9, THING_TYPE_9);
 
         DEVICE_TYPES.put(15, THING_TYPE_15);
+
+        DEVICE_TYPES.put(28, THING_TYPE_28);
 
         DEVICE_TYPES.put(32, THING_TYPE_32);
         DEVICE_TYPES.put(77, THING_TYPE_77);
@@ -120,9 +128,6 @@ public class Constants {
     public static final ThingTypeUID THING_TYPE_GSMSOCKET4 = new ThingTypeUID(BINDING_ID, "gsmsocket4");
     public static final ThingTypeUID THING_TYPE_AROMATHERAPY = new ThingTypeUID(BINDING_ID, "aromatherapy");
     public static final ThingTypeUID THING_TYPE_GSMUNLIMITSOCKET = new ThingTypeUID(BINDING_ID, "gsmunlimitsocket");
-    public static final ThingTypeUID THING_TYPE_RFBRIDGE = new ThingTypeUID(BINDING_ID, "rfbridge");
-    public static final ThingTypeUID THING_TYPE_POWERDETECTIONSOCKET = new ThingTypeUID(BINDING_ID,
-            "powerdetectionsocket");
     public static final ThingTypeUID THING_TYPE_LIGHTBELT = new ThingTypeUID(BINDING_ID, "lightbelt");
     public static final ThingTypeUID THING_TYPE_FANLIGHT = new ThingTypeUID(BINDING_ID, "fanlight");
     public static final ThingTypeUID THING_TYPE_EZVIZCAMERA = new ThingTypeUID(BINDING_ID, "ezvizcamera");
@@ -151,7 +156,6 @@ public class Constants {
  * deviceTypes.put(25, 0); // "AROMATHERAPY"); \\ Diffuser); Komeito 1515-X
  * deviceTypes.put(26, 0); // "RuiMiTeWenKongQi" \\
  * deviceTypes.put(27, 1); // "GSM_UNLIMIT_SOCKET" \\
- * deviceTypes.put(28, 1); // "RF_BRIDGE" \\ RFBridge); RF_Bridge
  * deviceTypes.put(29, 2); // "GSM_SOCKET_2" \\
  * deviceTypes.put(30, 3); // "GSM_SOCKET_3" \\
  * deviceTypes.put(31, 4); // "GSM_SOCKET_4" \\

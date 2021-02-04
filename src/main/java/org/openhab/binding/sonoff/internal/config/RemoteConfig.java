@@ -19,12 +19,12 @@ package org.openhab.binding.sonoff.internal.config;
  * @author David Murton - Initial contribution
  */
 
-public class DeviceConfig {
+public class RemoteConfig {
 
-    public String deviceId;
+    public String remoteid;
 
     @Override
     public String toString() {
-        return "[deviceId=" + deviceId + "]";
+        return "[remoteid=" + remoteid + "]";
     }
 }

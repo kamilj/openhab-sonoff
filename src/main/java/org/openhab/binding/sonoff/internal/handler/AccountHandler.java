@@ -12,7 +12,6 @@
  */
 package org.openhab.binding.sonoff.internal.handler;
 
-import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -31,9 +30,8 @@ import org.openhab.binding.sonoff.internal.connections.Lan;
 import org.openhab.binding.sonoff.internal.connections.Websocket;
 import org.openhab.binding.sonoff.internal.dto.api.Device;
 import org.openhab.binding.sonoff.internal.dto.api.Devices;
+import org.openhab.binding.sonoff.internal.listeners.ConnectionListener;
 import org.openhab.binding.sonoff.internal.listeners.DeviceStateListener;
-import org.openhab.binding.sonoff.internal.listeners.MDnsListener;
-import org.openhab.binding.sonoff.internal.listeners.WebSocketConnectionListener;
 import org.openhab.binding.sonoff.internal.sonoffDiscoveryService;
 import org.openhab.core.io.net.http.HttpClientFactory;
 import org.openhab.core.io.net.http.WebSocketFactory;
@@ -41,6 +39,7 @@ import org.openhab.core.thing.Bridge;
 import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.thing.Thing;
 import org.openhab.core.thing.ThingStatus;
+import org.openhab.core.thing.ThingStatusDetail;
 import org.openhab.core.thing.binding.BaseBridgeHandler;
 import org.openhab.core.thing.binding.ThingHandlerService;
 import org.openhab.core.types.Command;
@@ -57,7 +56,7 @@ import com.google.gson.JsonObject;
  * @author David Murton - Initial contribution
  */
 @NonNullByDefault
-public class AccountHandler extends BaseBridgeHandler implements WebSocketConnectionListener {
+public class AccountHandler extends BaseBridgeHandler implements ConnectionListener {
 
     private final Logger logger = LoggerFactory.getLogger(AccountHandler.class);
 
@@ -65,14 +64,15 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketConnec
     private final HttpClientFactory httpClientFactory;
     private @Nullable Websocket ws;
     private @Nullable Lan lan;
-    private MDnsListener mdnsListener = new MDnsListener(this);
     private @Nullable Api api;
     private @Nullable AccountConfig config;
     private @Nullable ScheduledFuture<?> tokenTask;
+    private @Nullable ScheduledFuture<?> pingTask;
     private @Nullable ScheduledFuture<?> connectionTask;
     private final Gson gson;
     private Boolean lanOnline = false;
     private Boolean wsOnline = false;
+    private Boolean apiOnline = false;
     private String mode = "";
     private final Map<String, DeviceStateListener> deviceStateListener = new HashMap<>();
     final Map<String, Device> deviceState = new HashMap<>();
@@ -101,56 +101,74 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketConnec
     public void initialize() {
         config = this.getConfigAs(AccountConfig.class);
         mode = config.accessmode.toString();
-        api = new Api(config, httpClientFactory, gson);
-        logger.debug("Sonoff - Starting Api: {}");
+
+        logger.debug("Starting Api");
+        api = new Api(config, this, httpClientFactory, gson);
         api.start();
-        api.login();
-        logger.debug("Sonoff - Starting Discovery: {}");
-        Devices devices = api.discover();
-        for (int i = 0; i < devices.getDevicelist().size(); i++) {
-            deviceState.put(devices.getDevicelist().get(i).getDeviceid(), devices.getDevicelist().get(i));
-        }
 
         if ((mode.equals("mixed") || mode.equals("local"))) {
-            logger.debug("Sonoff - Starting LAN Connection");
-            try {
-                lan = new Lan(config.ipaddress);
-                lan.start();
-                lan.addListener(this.thing.getUID().toString(), mdnsListener);
-                lanConnectionOpen(true);
-            } catch (IOException e1) {
-                lanConnectionOpen(false);
-            }
+            logger.debug("Starting mDNS Client");
+            lan = new Lan(config.ipaddress, this);
         }
 
         if ((mode.equals("mixed") || mode.equals("cloud"))) {
+            logger.debug("Starting Websocket Client");
             ws = new Websocket(webSocketFactory, gson, api, this);
         }
 
         Runnable getToken = () -> {
             if ((mode.equals("mixed") || mode.equals("cloud"))) {
-                try {
-                    api.login();
-                } catch (Exception e) {
-                    logger.warn("Sonoff - Exception Logging in. Cause: {}", e.getMessage());
-                }
+                api.login();
             }
         };
         tokenTask = scheduler.scheduleWithFixedDelay(getToken, 6, 6, TimeUnit.HOURS);
 
         Runnable connect = () -> {
-            logger.debug("Sonoff - Connection check Running");
-            if ((mode.equals("mixed") || mode.equals("cloud")) && !wsOnline) {
-                logger.debug("Sonoff - Starting Cloud Connection");
-                ws.start();
+            logger.debug("Sonoff Connection Check Running");
+            if (!apiOnline) {
+                api.getRegion();
+                api.login();
+                logger.debug("Performing Initial Discovery");
+                Devices devices = new Devices();
+                devices = api.discover();
+                for (int i = 0; i < devices.getDevicelist().size(); i++) {
+                    deviceState.put(devices.getDevicelist().get(i).getDeviceid(), devices.getDevicelist().get(i));
+                }
+                if ((mode.equals("mixed") || mode.equals("cloud"))) {
+                    logger.debug("Initialising Cloud Connection");
+                    ws.start();
+                }
+                if ((mode.equals("mixed") || mode.equals("local"))) {
+                    logger.debug("Initialising Local Connection");
+                    lan.start();
+                }
+            } else {
+                if ((mode.equals("mixed") || mode.equals("cloud")) && !wsOnline) {
+                    logger.debug("Reconnecting Cloud Connection as was disconnected");
+                    ws.start();
+                }
+                if ((mode.equals("mixed") || mode.equals("local")) && !lanOnline) {
+                    logger.debug("Reconnecting Local Connection as was disconnected");
+                    lan.start();
+                }
             }
         };
         connectionTask = scheduler.scheduleWithFixedDelay(connect, 10, 60, TimeUnit.SECONDS);
+        Runnable wsKeepAlive = () -> {
+            if (wsOnline) {
+                ws.sendPing();
+            }
+        };
+        pingTask = scheduler.scheduleWithFixedDelay(wsKeepAlive, 30, 30, TimeUnit.SECONDS);
     }
 
     @Override
     public void dispose() {
         logger.debug("Sonoff - Running dispose()");
+        if (pingTask != null) {
+            pingTask.cancel(true);
+            pingTask = null;
+        }
         if (tokenTask != null) {
             tokenTask.cancel(true);
             tokenTask = null;
@@ -165,18 +183,14 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketConnec
         }
         wsOnline = false;
         if (lan != null) {
-            try {
-                lan.stop();
-            } catch (Exception e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
+            lan.stop();
             lan = null;
+            lanOnline = false;
         }
-        lanOnline = false;
         if (api != null) {
             api.stop();
             api = null;
+            apiOnline = false;
         }
     }
 
@@ -202,7 +216,7 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketConnec
 
     public void registerStateListener(String deviceId, DeviceStateListener listener) {
         deviceStateListener.put(deviceId, listener);
-        logger.debug("Sonoff - Listener Added for deviceId: {}", deviceId);
+        logger.debug("Device Listener Added for deviceId: {}", deviceId);
     }
 
     public void unregisterStateListener(String deviceId) {
@@ -222,9 +236,9 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketConnec
     }
 
     @Override
-    public void webSocketConnectionOpen(Boolean connected) {
-        this.wsOnline = connected;
-        logger.debug("Sonoff - Websocket Connected: {}", connected);
+    public void webSocketConnectionOpen() {
+        this.wsOnline = true;
+        logger.debug("Cloud Mode Connected");
         if (mode.equals("mixed") && lanOnline) {
             updateStatus(ThingStatus.ONLINE);
         } else if (mode.equals("cloud")) {
@@ -232,9 +246,9 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketConnec
         }
     }
 
-    public void lanConnectionOpen(Boolean connected) {
-        this.lanOnline = connected;
-        logger.debug("Sonoff - Lan Connected: {}", connected);
+    public void lanConnectionOpen() {
+        this.lanOnline = true;
+        logger.debug("Local Mode Connected");
         if (mode.equals("mixed") && wsOnline) {
             updateStatus(ThingStatus.ONLINE);
         } else if (mode.equals("local")) {
@@ -248,7 +262,7 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketConnec
         listener.cloudUpdate(device);
     }
 
-    public void resolved(ServiceInfo serviceInfo) {
+    public void onLanMessage(ServiceInfo serviceInfo) {
         JsonObject jsonObject = new JsonObject();
         Enumeration<String> info = serviceInfo.getPropertyNames();
         while (info.hasMoreElements()) {
@@ -263,5 +277,33 @@ public class AccountHandler extends BaseBridgeHandler implements WebSocketConnec
         deviceState.get(deviceid).setLocalAddress(ipaddress);
         deviceState.get(deviceid).setSequence(seq);
         listener.lanUpdate(jsonObject, ipaddress, seq);
+    }
+
+    @Override
+    public void onError(String module, @Nullable String code, @Nullable String message) {
+        updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR,
+                module + " has thrown an error and is offline, binding will atempt to restart");
+        logger.debug("Error code:{}, message:{}", code, message);
+        if (module.equals("api")) {
+            ws.stop();
+            wsOnline = false;
+            try {
+                lan.stop();
+            } catch (Exception e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            lanOnline = false;
+            apiOnline = false;
+        } else if (module == "websocket") {
+            wsOnline = false;
+        } else if (module == "lan") {
+            lanOnline = false;
+        }
+    }
+
+    @Override
+    public void ApiconnectionOpen() {
+        apiOnline = true;
     }
 }

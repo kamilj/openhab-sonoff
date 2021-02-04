@@ -1,23 +1,23 @@
-
 package org.openhab.binding.sonoff.internal.dto.api;
 
 import java.io.Serializable;
+import java.util.List;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
 public class Tags implements Serializable {
 
-    @SerializedName("m_c395_djmu")
+    @SerializedName("zyx_info")
     @Expose
-    private String mC395Djmu;
-    private final static long serialVersionUID = 5437403083294828237L;
+    private List<ZyxInfo> zyxInfo = null;
+    private final static long serialVersionUID = 7529147661865551616L;
 
-    public String getMC395Djmu() {
-        return mC395Djmu;
+    public List<ZyxInfo> getZyxInfo() {
+        return zyxInfo;
     }
 
-    public void setMC395Djmu(String mC395Djmu) {
-        this.mC395Djmu = mC395Djmu;
+    public void setZyxInfo(List<ZyxInfo> zyxInfo) {
+        this.zyxInfo = zyxInfo;
     }
 }

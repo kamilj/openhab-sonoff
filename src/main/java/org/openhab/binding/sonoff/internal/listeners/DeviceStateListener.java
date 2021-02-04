@@ -24,12 +24,7 @@ import com.google.gson.JsonObject;
  */
 @NonNullByDefault
 public interface DeviceStateListener {
-    /**
-     * A sensor config was updated.
-     *
-     * @param channelUID device channel type
-     * @param state new state of the channel
-     */
+
     void lanUpdate(JsonObject jsonObject, String ipaddress, String sequence);
 
     void cloudUpdate(Device device);
