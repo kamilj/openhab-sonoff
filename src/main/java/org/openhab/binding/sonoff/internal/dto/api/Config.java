@@ -13,6 +13,9 @@ public class Config implements Serializable {
     @SerializedName("hbInterval")
     @Expose
     private Integer hbInterval;
+    @SerializedName("hundredDaysKwhData")
+    @Expose
+    private String hundredDaysKwhData;
     private final static long serialVersionUID = -2605312819381631092L;
 
     public Integer getHb() {
@@ -29,5 +32,13 @@ public class Config implements Serializable {
 
     public void setHbInterval(Integer hbInterval) {
         this.hbInterval = hbInterval;
+    }
+
+    public String getHundredDaysKwhData() {
+        return hundredDaysKwhData;
+    }
+
+    public void setHundredDaysKwhData(String hundredDaysKwhData) {
+        this.hundredDaysKwhData = hundredDaysKwhData;
     }
 }

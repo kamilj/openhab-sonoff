@@ -26,7 +26,9 @@ public class WsUpdate implements Serializable {
     @SerializedName("params")
     @Expose
     private JsonObject params;
-    private String offlineTime;
+    @SerializedName("tempRec")
+    @Expose
+    private String tempRec;
     @SerializedName("selfApikey")
     @Expose
     private String selfApikey;
@@ -94,12 +96,12 @@ public class WsUpdate implements Serializable {
         this.params = params;
     }
 
-    public String getOfflineTime() {
-        return this.offlineTime;
+    public String getTempRec() {
+        return this.tempRec;
     }
 
-    public void setOfflineTime(String offlineTime) {
-        this.offlineTime = offlineTime;
+    public void setTempRec(String tempRec) {
+        this.tempRec = tempRec;
     }
 
     public String getSelfApikey() {

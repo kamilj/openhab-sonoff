@@ -22,4 +22,6 @@ public interface ConnectionListener {
     void webSocketConnectionOpen();
 
     void webSocketMessage(Device device);
+
+    void webSocketConsumptionMessage(String deviceid, String data);
 }

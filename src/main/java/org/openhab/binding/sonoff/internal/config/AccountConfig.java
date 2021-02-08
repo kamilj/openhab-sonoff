@@ -26,11 +26,13 @@ public class AccountConfig {
     public String countryCode;
     public String ipaddress;
     public String accessmode;
+    public Integer pollingInterval;
 
     @Override
     public String toString() {
         return "[email=" + email + ", password=" + getPasswordForPrinting() + ", countryCode=" + countryCode
-                + ", accessmode=" + accessmode + ", ipaddress=" + ipaddress + "]";
+                + ", accessmode=" + accessmode + ", ipaddress=" + ipaddress + ", pollingInterval=" + pollingInterval
+                + "]";
     }
 
     private String getPasswordForPrinting() {

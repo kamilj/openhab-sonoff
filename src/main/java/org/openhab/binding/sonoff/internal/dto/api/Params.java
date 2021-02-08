@@ -140,6 +140,15 @@ public class Params implements Serializable {
     @SerializedName("rfChl")
     @Expose
     private Integer rfChl;
+    @SerializedName("rfCh2")
+    @Expose
+    private Integer rfCh2;
+    @SerializedName("rfCh3")
+    @Expose
+    private Integer rfCh3;
+    @SerializedName("rfCh4")
+    @Expose
+    private Integer rfCh4;
 
     private final static long serialVersionUID = 1205249120703729170L;
 
@@ -477,5 +486,182 @@ public class Params implements Serializable {
 
     public void setRfChl(Integer rfChl) {
         this.rfChl = rfChl;
+    }
+
+    @SerializedName("rfTrig0")
+    @Expose
+    private String rfTrig0;
+    @SerializedName("rfTrig1")
+    @Expose
+    private String rfTrig1;
+    @SerializedName("rfTrig2")
+    @Expose
+    private String rfTrig2;
+    @SerializedName("rfTrig3")
+    @Expose
+    private String rfTrig3;
+    @SerializedName("rfTrig4")
+    @Expose
+    private String rfTrig4;
+    @SerializedName("rfTrig5")
+    @Expose
+    private String rfTrig5;
+    @SerializedName("rfTrig6")
+    @Expose
+    private String rfTrig6;
+    @SerializedName("rfTrig7")
+    @Expose
+    private String rfTrig7;
+    @SerializedName("rfTrig8")
+    @Expose
+    private String rfTrig8;
+    @SerializedName("rfTrig9")
+    @Expose
+    private String rfTrig9;
+    @SerializedName("rfTrig10")
+    @Expose
+    private String rfTrig10;
+    @SerializedName("rfTrig11")
+    @Expose
+    private String rfTrig11;
+    @SerializedName("rfTrig12")
+    @Expose
+    private String rfTrig12;
+    @SerializedName("rfTrig13")
+    @Expose
+    private String rfTrig13;
+    @SerializedName("rfTrig14")
+    @Expose
+    private String rfTrig14;
+    @SerializedName("rfTrig15")
+    @Expose
+    private String rfTrig15;
+
+    public String getRfTrig0() {
+        return this.rfTrig0;
+    }
+
+    public void setRfTrig0(String rfTrig0) {
+        this.rfTrig0 = rfTrig0;
+    }
+
+    public String getRfTrig1() {
+        return this.rfTrig1;
+    }
+
+    public void setRfTrig1(String rfTrig1) {
+        this.rfTrig1 = rfTrig1;
+    }
+
+    public String getRfTrig2() {
+        return this.rfTrig2;
+    }
+
+    public void setRfTrig2(String rfTrig2) {
+        this.rfTrig2 = rfTrig2;
+    }
+
+    public String getRfTrig3() {
+        return this.rfTrig3;
+    }
+
+    public void setRfTrig3(String rfTrig3) {
+        this.rfTrig3 = rfTrig3;
+    }
+
+    public String getRfTrig4() {
+        return this.rfTrig4;
+    }
+
+    public void setRfTrig4(String rfTrig4) {
+        this.rfTrig4 = rfTrig4;
+    }
+
+    public String getRfTrig5() {
+        return this.rfTrig5;
+    }
+
+    public void setRfTrig5(String rfTrig5) {
+        this.rfTrig5 = rfTrig5;
+    }
+
+    public String getRfTrig6() {
+        return this.rfTrig6;
+    }
+
+    public void setRfTrig6(String rfTrig6) {
+        this.rfTrig6 = rfTrig6;
+    }
+
+    public String getRfTrig7() {
+        return this.rfTrig7;
+    }
+
+    public void setRfTrig7(String rfTrig7) {
+        this.rfTrig7 = rfTrig7;
+    }
+
+    public String getRfTrig8() {
+        return this.rfTrig8;
+    }
+
+    public void setRfTrig8(String rfTrig8) {
+        this.rfTrig8 = rfTrig8;
+    }
+
+    public String getRfTrig9() {
+        return this.rfTrig9;
+    }
+
+    public void setRfTrig9(String rfTrig9) {
+        this.rfTrig9 = rfTrig9;
+    }
+
+    public String getRfTrig10() {
+        return this.rfTrig10;
+    }
+
+    public void setRfTrig10(String rfTrig10) {
+        this.rfTrig10 = rfTrig10;
+    }
+
+    public String getRfTrig11() {
+        return this.rfTrig11;
+    }
+
+    public void setRfTrig11(String rfTrig11) {
+        this.rfTrig11 = rfTrig11;
+    }
+
+    public String getRfTrig12() {
+        return this.rfTrig12;
+    }
+
+    public void setRfTrig12(String rfTrig12) {
+        this.rfTrig12 = rfTrig12;
+    }
+
+    public String getRfTrig13() {
+        return this.rfTrig13;
+    }
+
+    public void setRfTrig13(String rfTrig13) {
+        this.rfTrig13 = rfTrig13;
+    }
+
+    public String getRfTrig14() {
+        return this.rfTrig14;
+    }
+
+    public void setRfTrig14(String rfTrig14) {
+        this.rfTrig14 = rfTrig14;
+    }
+
+    public String getRfTrig15() {
+        return this.rfTrig15;
+    }
+
+    public void setRfTrig15(String rfTrig15) {
+        this.rfTrig15 = rfTrig15;
     }
 }

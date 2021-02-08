@@ -25,6 +25,7 @@ import org.eclipse.smarthome.io.net.http.HttpClientFactory;
 import org.eclipse.smarthome.io.net.http.WebSocketFactory;
 import org.openhab.binding.sonoff.internal.handler.AccountHandler;
 import org.openhab.binding.sonoff.internal.handler.RFBridgeHandler;
+import org.openhab.binding.sonoff.internal.handler.RFRemoteHandler;
 import org.openhab.binding.sonoff.internal.handler.SwitchHandler;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -77,6 +78,8 @@ public class SonoffHandlerFactory extends BaseThingHandlerFactory {
             return new SwitchHandler(thing, gson);
         } else if (thingTypeUID.equals(THING_TYPE_28)) {
             return new RFBridgeHandler((Bridge) thing, gson);
+        } else if (thingTypeUID.equals(THING_TYPE_RF4) || thingTypeUID.equals(THING_TYPE_RF6)) {
+            return new RFRemoteHandler(thing, gson);
         }
 
         else {

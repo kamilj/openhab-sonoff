@@ -35,28 +35,21 @@ public class Constants {
 
     // List of all Thing Type UIDs
     public static final ThingTypeUID THING_TYPE_ACCOUNT = new ThingTypeUID(BINDING_ID, "account");
-    public static final ThingTypeUID THING_TYPE_1 = new ThingTypeUID(BINDING_ID, "1"); // S20 , S26 , BASIC , MINI
-    public static final ThingTypeUID THING_TYPE_2 = new ThingTypeUID(BINDING_ID, "2"); // SOCKET_2 Please let me know
-                                                                                       // the model
-    public static final ThingTypeUID THING_TYPE_3 = new ThingTypeUID(BINDING_ID, "3"); // SOCKET_3 Please let me know
-                                                                                       // the model
-    public static final ThingTypeUID THING_TYPE_4 = new ThingTypeUID(BINDING_ID, "4"); // SOCKET_4 Please let me know
-                                                                                       // the model
-    public static final ThingTypeUID THING_TYPE_5 = new ThingTypeUID(BINDING_ID, "5"); // SOCKET_POWER Please let me
-                                                                                       // know the model
+    public static final ThingTypeUID THING_TYPE_1 = new ThingTypeUID(BINDING_ID, "1"); // S20 , S26 , BASIC , MINI, Mini
+                                                                                       // PCiE Card
+    public static final ThingTypeUID THING_TYPE_2 = new ThingTypeUID(BINDING_ID, "2"); // SOCKET_2 Unknown Model
+    public static final ThingTypeUID THING_TYPE_3 = new ThingTypeUID(BINDING_ID, "3"); // SOCKET_3 Unknown Model
+    public static final ThingTypeUID THING_TYPE_4 = new ThingTypeUID(BINDING_ID, "4"); // SOCKET_4 Unknown Model
+    public static final ThingTypeUID THING_TYPE_5 = new ThingTypeUID(BINDING_ID, "5"); // POW
     public static final ThingTypeUID THING_TYPE_6 = new ThingTypeUID(BINDING_ID, "6"); // T11C , TX1C , G1
     public static final ThingTypeUID THING_TYPE_7 = new ThingTypeUID(BINDING_ID, "7"); // T12C , TX2C
     public static final ThingTypeUID THING_TYPE_8 = new ThingTypeUID(BINDING_ID, "8"); // T13C , TX3C
-    public static final ThingTypeUID THING_TYPE_9 = new ThingTypeUID(BINDING_ID, "9"); // SWITCH_4 Please let me know
-                                                                                       // the model
-
+    public static final ThingTypeUID THING_TYPE_9 = new ThingTypeUID(BINDING_ID, "9"); // SWITCH_4 Unknown Model
     public static final ThingTypeUID THING_TYPE_15 = new ThingTypeUID(BINDING_ID, "15"); // TH10 , TH16
-
     public static final ThingTypeUID THING_TYPE_28 = new ThingTypeUID(BINDING_ID, "28"); // RF-BRIDGE (RF3)
-    public static final ThingTypeUID THING_TYPE_REMOTE4 = new ThingTypeUID(BINDING_ID, "remote4"); // 4 Button RF Remote
-
+    public static final ThingTypeUID THING_TYPE_RF4 = new ThingTypeUID(BINDING_ID, "rfremote4"); // 4 Button RF Remote
+    public static final ThingTypeUID THING_TYPE_RF6 = new ThingTypeUID(BINDING_ID, "rfsensor"); // RF Sensor
     public static final ThingTypeUID THING_TYPE_32 = new ThingTypeUID(BINDING_ID, "32"); // POWR2
-
     public static final ThingTypeUID THING_TYPE_77 = new ThingTypeUID(BINDING_ID, "77"); // MICRO (USB)
 
     public static final Set<ThingTypeUID> SUPPORTED_THING_TYPE_UIDS = Collections
@@ -65,7 +58,7 @@ public class Constants {
 
                     THING_TYPE_15,
 
-                    THING_TYPE_28, THING_TYPE_REMOTE4,
+                    THING_TYPE_28, THING_TYPE_RF4, THING_TYPE_RF6,
 
                     THING_TYPE_32, THING_TYPE_77
 
@@ -77,9 +70,12 @@ public class Constants {
 
                     THING_TYPE_15,
 
-                    THING_TYPE_28, THING_TYPE_REMOTE4,
+                    THING_TYPE_28, THING_TYPE_RF4, THING_TYPE_RF6,
 
                     THING_TYPE_32, THING_TYPE_77).collect(Collectors.toSet()));
+
+    public static final Set<ThingTypeUID> RFDISCOVERABLE_THING_TYPE_UIDS = Collections
+            .unmodifiableSet(Stream.of(THING_TYPE_RF4, THING_TYPE_RF6).collect(Collectors.toSet()));
 
     public static final Set<Integer> LAN_SUPPORTED = Collections
             .unmodifiableSet(Stream.of(1, 2, 3, 4, 5, 6, 7, 8, 9, 32, 77, 78).collect(Collectors.toSet()));
@@ -104,6 +100,14 @@ public class Constants {
         DEVICE_TYPES.put(77, THING_TYPE_77);
 
         return Collections.unmodifiableMap(DEVICE_TYPES);
+    }
+
+    public static final Map<Integer, ThingTypeUID> createSensorMap() { // thing type denotes number of channels
+        Map<Integer, ThingTypeUID> SENSOR_TYPES = new HashMap<>();
+        SENSOR_TYPES.put(4, THING_TYPE_RF4);
+        SENSOR_TYPES.put(6, THING_TYPE_RF6);
+
+        return Collections.unmodifiableMap(SENSOR_TYPES);
     }
 
     // To Do

@@ -16,12 +16,39 @@ public class ApiStatusChange implements Serializable {
     @SerializedName("version")
     @Expose
     private Integer version = DtoHelper.version;
+
+    public Integer getVersion() {
+        return this.version;
+    }
+
+    public void setVersion(Integer version) {
+        this.version = version;
+    }
+
     @SerializedName("appid")
     @Expose
     private String appid = DtoHelper.appid;
+
+    public String getAppid() {
+        return this.appid;
+    }
+
+    public void setAppid(String appid) {
+        this.appid = appid;
+    }
+
     @SerializedName("ts")
     @Expose
     private Long ts = DtoHelper.getTs();
+
+    public Long getTs() {
+        return this.ts;
+    }
+
+    public void setTs(Long ts) {
+        this.ts = ts;
+    }
+
     @SerializedName("params")
     @Expose
     private String params;

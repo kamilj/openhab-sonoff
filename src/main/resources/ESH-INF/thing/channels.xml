@@ -30,6 +30,38 @@
 		<description>Switch</description>
 	</channel-type>
 
+	<channel-type id="todayKwh">
+		<item-type>Number</item-type>
+		<label>Todays Energy Usage</label>
+		<description>Todays energy Usage in kwh</description>
+		<state pattern="%.2f KwH" readOnly="true"/>
+	</channel-type>
+	<channel-type id="yesterdayKwh">
+		<item-type>Number</item-type>
+		<label>Yesterdays Energy Usage</label>
+		<description>Yesterdays energy Usage in kwh</description>
+		<state pattern="%.2f KwH" readOnly="true"/>
+	</channel-type>
+	<channel-type id="sevenKwh">
+		<item-type>Number</item-type>
+		<label>Last 7 Days Energy Usage</label>
+		<description>Last 7 Days energy Usage in kwh</description>
+		<state pattern="%.2f KwH" readOnly="true"/>
+	</channel-type>
+	<channel-type id="thirtyKwh">
+		<item-type>Number</item-type>
+		<label>Last 30 Days Energy Usage</label>
+		<description>Last 30 Days energy Usage in kwh</description>
+		<state pattern="%.2f KwH" readOnly="true"/>
+	</channel-type>
+	<channel-type id="hundredKwh">
+		<item-type>Number</item-type>
+		<label>Last 100 Days Energy Usage</label>
+		<description>Last 100 Days energy Usage in kwh</description>
+		<state pattern="%.2f KwH" readOnly="true"/>
+	</channel-type>
+
+
 	<channel-type id="button0">
 		<item-type>Switch</item-type>
 		<label>Button</label>
@@ -50,21 +82,29 @@
 		<label>Button</label>
 		<description>Button</description>
 	</channel-type>
+	<channel-type id="sensorTriggered">
+		<item-type>DateTime</item-type>
+		<label>Sensor Last triggered</label>
+		<description>Sensor Last Triggered</description>
+	</channel-type>
 
 	<channel-type id="power">
 		<item-type>Number</item-type>
 		<label>Power</label>
 		<description>Power</description>
+		<state pattern="%.2f W" readOnly="true"/>
 	</channel-type>
 	<channel-type id="voltage">
 		<item-type>Number</item-type>
 		<label>Voltage</label>
 		<description>Voltage</description>
+		<state pattern="%.2f V" readOnly="true"/>
 	</channel-type>
 	<channel-type id="current">
 		<item-type>Number</item-type>
 		<label>Current</label>
 		<description>Current</description>
+		<state pattern="%.2f A" readOnly="true"/>
 	</channel-type>
 	<channel-type id="online">
 		<item-type>String</item-type>
@@ -72,7 +112,7 @@
 		<description>Currently has connection to the cloud</description>
 	</channel-type>
 	<channel-type id="offlineTime">
-		<item-type>String</item-type>
+		<item-type>DateTime</item-type>
 		<label>Last Offline</label>
 		<description>Last Offline</description>
 	</channel-type>
@@ -80,16 +120,19 @@
 		<item-type>Number</item-type>
 		<label>Signal Strength</label>
 		<description>Signal Strength</description>
+		<state pattern="%.0f dBi" readOnly="true"/>
 	</channel-type>
 	<channel-type id="temperature">
 		<item-type>Number</item-type>
 		<label>Temperature</label>
 		<description>Temperature</description>
+		<state pattern="%.2f C" readOnly="true"/>
 	</channel-type>
 	<channel-type id="humidity">
 		<item-type>Number</item-type>
 		<label>Humidity</label>
 		<description>Humidity</description>
+		<state pattern="%.2f %" readOnly="true"/>
 	</channel-type>
 	<channel-type id="mainSwitch">
 		<item-type>String</item-type>
