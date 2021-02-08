@@ -21,10 +21,10 @@ package org.openhab.binding.sonoff.internal.config;
 
 public class RemoteConfig {
 
-    public String remoteid;
+    public String id;
 
     @Override
     public String toString() {
-        return "[remoteid=" + remoteid + "]";
+        return "[id=" + id + "]";
     }
 }

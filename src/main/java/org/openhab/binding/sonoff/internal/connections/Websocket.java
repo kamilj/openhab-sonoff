@@ -14,6 +14,7 @@ import org.eclipse.jetty.websocket.client.WebSocketClient;
 import org.openhab.binding.sonoff.internal.dto.api.Device;
 import org.openhab.binding.sonoff.internal.dto.api.WsMessage;
 import org.openhab.binding.sonoff.internal.dto.api.WsServerResponse;
+import org.openhab.binding.sonoff.internal.dto.payloads.WsEnergyRequest;
 import org.openhab.binding.sonoff.internal.dto.payloads.WsLoginRequest;
 import org.openhab.binding.sonoff.internal.dto.payloads.WsUpdate;
 import org.openhab.binding.sonoff.internal.listeners.ConnectionListener;
@@ -84,7 +85,6 @@ public class Websocket {
     }
 
     private void sendMessage(String message) {
-        logger.debug("Message sent: {}", message);
         this.session.getRemote().sendStringByFuture(message);
     }
 
@@ -97,6 +97,16 @@ public class Websocket {
         request.setSelfApikey(deviceKey);
         request.setParams(payload);
         logger.debug("Websocket Set Status Request:{}", gson.toJson(request));
+        queueMessage(request.getSequence(), gson.toJson(request));
+    }
+
+    public void getConsumption(String data, String deviceid) {
+        JsonObject payload = new JsonParser().parse(data).getAsJsonObject();
+        WsEnergyRequest request = new WsEnergyRequest();
+        request.setApikey(api.getApiKey());
+        request.setDeviceid(deviceid);
+        request.setParams(payload);
+        logger.debug("Websocket Get Consumption Request:{}", gson.toJson(request));
         queueMessage(request.getSequence(), gson.toJson(request));
     }
 
@@ -122,13 +132,18 @@ public class Websocket {
     @OnWebSocketMessage
     public void onMessage(String message) {
         logger.debug("Websocket Response: {}", message);
-        if (!message.contains("pong")) {
+        if (message.contains("pong")) {
+            logger.debug("Websocket Received Pong Response");
+        } else {
             WsMessage response = gson.fromJson(message, WsMessage.class);
             if (response.getError() != null) {
                 if (response.getError() > 0) {
                     listener.onError("websocket", response.getError().toString(), response.getReason());
-                } else {
+                } else if (response.getDeviceid() == null) {
                     listener.webSocketConnectionOpen();
+                } else if (response.getConfig().getHundredDaysKwhData() != null) {
+                    listener.webSocketConsumptionMessage(response.getDeviceid(),
+                            response.getConfig().getHundredDaysKwhData());
                 }
             } else {
                 Device device = gson.fromJson(message, Device.class);

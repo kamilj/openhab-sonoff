@@ -28,4 +28,6 @@ public interface DeviceStateListener {
     void lanUpdate(JsonObject jsonObject, String ipaddress, String sequence);
 
     void cloudUpdate(Device device);
+
+    void consumption(String data);
 }

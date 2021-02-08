@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.measure.quantity.ElectricCurrent;
 import javax.measure.quantity.ElectricPotential;
+import javax.measure.quantity.Energy;
 import javax.measure.quantity.Power;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -32,6 +33,7 @@ import org.openhab.binding.sonoff.internal.dto.payloads.MultiSwitch;
 import org.openhab.binding.sonoff.internal.dto.payloads.SingleSwitch;
 import org.openhab.binding.sonoff.internal.dto.payloads.UiActive;
 import org.openhab.binding.sonoff.internal.listeners.DeviceStateListener;
+import org.openhab.core.library.types.DateTimeType;
 import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.library.types.PercentType;
 import org.openhab.core.library.types.QuantityType;
@@ -91,10 +93,11 @@ public class SwitchHandler extends BaseThingHandler implements DeviceStateListen
                 account.registerStateListener(config.deviceId, this);
                 Runnable activateWs = () -> {
                     UiActive params = new UiActive();
-                    params.setUiActive(21600);
+                    params.setUiActive(60);
                     sendUpdate(gson.toJson(params), "uiActive", "");
                 };
-                wsTask = scheduler.scheduleWithFixedDelay(activateWs, 10, 21600, TimeUnit.SECONDS);
+                wsTask = scheduler.scheduleWithFixedDelay(activateWs, 10, 60, TimeUnit.SECONDS);
+
                 if (account.getThing().getStatus() == ThingStatus.ONLINE) {
                     updateStatus(ThingStatus.ONLINE);
                 }
@@ -241,7 +244,7 @@ public class SwitchHandler extends BaseThingHandler implements DeviceStateListen
                     new QuantityType<Power>(device.getParams().getRssi(), (DECIBEL_MILLIWATTS)));
         }
         if (device.getOfflineTime() != null && this.thing.getChannel("offlineTime") != null) {
-            updateState(this.thing.getChannel("offlineTime").getUID(), new StringType(device.getOfflineTime()));
+            updateState(this.thing.getChannel("offlineTime").getUID(), new DateTimeType(device.getOfflineTime()));
         }
         if (device.getOnline() != null && this.thing.getChannel("online") != null) {
             updateState(this.thing.getChannel("online").getUID(),
@@ -287,5 +290,49 @@ public class SwitchHandler extends BaseThingHandler implements DeviceStateListen
         Device device = new Device();
         device.setParams(gson.fromJson(message, Params.class));
         updateState(device);
+    }
+
+    @Override
+    public void consumption(String data) {
+        String[] hexValues;
+        String[] splitData = data.split("(?<=\\G.{6})");
+        double total = 0.00;
+        for (int i = 0; i < 100; i++) {
+            hexValues = splitData[i].split("(?<=\\G.{2})");
+            total = total + Double.parseDouble(Integer.parseInt(hexValues[0], 16) + "."
+                    + Integer.parseInt(hexValues[1], 16) + Integer.parseInt(hexValues[2], 16));
+            if (i == 0) {
+                if (this.thing.getChannel("todayKwh") != null) {
+                    updateState(this.thing.getChannel("todayKwh").getUID(),
+                            new QuantityType<Energy>(total, (KILOWATT_HOUR)));
+                }
+            }
+            if (i == 1) {
+                if (this.thing.getChannel("yesterdayKwh") != null) {
+                    double newtotal = Double.parseDouble(Integer.parseInt(hexValues[0], 16) + "."
+                            + Integer.parseInt(hexValues[1], 16) + Integer.parseInt(hexValues[2], 16));
+                    updateState(this.thing.getChannel("yesterdayKwh").getUID(),
+                            new QuantityType<Energy>(newtotal, (KILOWATT_HOUR)));
+                }
+            }
+            if (i == 6) {
+                if (this.thing.getChannel("sevenKwh") != null) {
+                    updateState(this.thing.getChannel("sevenKwh").getUID(),
+                            new QuantityType<Energy>(total, (KILOWATT_HOUR)));
+                }
+            }
+            if (i == 29) {
+                if (this.thing.getChannel("thirtyKwh") != null) {
+                    updateState(this.thing.getChannel("thirtyKwh").getUID(),
+                            new QuantityType<Energy>(total, (KILOWATT_HOUR)));
+                }
+            }
+            if (i == 99) {
+                if (this.thing.getChannel("hundredKwh") != null) {
+                    updateState(this.thing.getChannel("hundredKwh").getUID(),
+                            new QuantityType<Energy>(total, (KILOWATT_HOUR)));
+                }
+            }
+        }
     }
 }

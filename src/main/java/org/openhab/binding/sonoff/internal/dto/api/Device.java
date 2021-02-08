@@ -105,6 +105,28 @@ public class Device implements Serializable {
     @SerializedName("sequence")
     @Expose
     private String sequence;
+    @SerializedName("config")
+    @Expose
+    private Config config;
+    @SerializedName("error")
+    @Expose
+    private Integer error;
+
+    public Integer getError() {
+        return this.error;
+    }
+
+    public void setError(Integer error) {
+        this.error = error;
+    }
+
+    public Config getConfig() {
+        return this.config;
+    }
+
+    public void setConfig(Config config) {
+        this.config = config;
+    }
 
     public String getSequence() {
         return this.sequence;

@@ -12,13 +12,10 @@
  */
 package org.openhab.binding.sonoff.internal.handler;
 
-import static org.openhab.core.library.unit.Units.*;
-
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-
-import javax.measure.quantity.Power;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
@@ -28,8 +25,7 @@ import org.openhab.binding.sonoff.internal.dto.api.Device;
 import org.openhab.binding.sonoff.internal.dto.api.Params;
 import org.openhab.binding.sonoff.internal.dto.payloads.UiActive;
 import org.openhab.binding.sonoff.internal.listeners.DeviceStateListener;
-import org.openhab.core.library.types.QuantityType;
-import org.openhab.core.library.types.StringType;
+import org.openhab.binding.sonoff.internal.listeners.RFListener;
 import org.openhab.core.thing.Bridge;
 import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.thing.Thing;
@@ -54,13 +50,14 @@ import com.google.gson.JsonObject;
 @NonNullByDefault
 public class RFBridgeHandler extends BaseBridgeHandler implements DeviceStateListener {
 
-    private final Logger logger = LoggerFactory.getLogger(SwitchHandler.class);
+    private final Logger logger = LoggerFactory.getLogger(RFBridgeHandler.class);
     private @Nullable AccountHandler account;
     private @Nullable DeviceConfig config;
     private @Nullable ScheduledFuture<?> wsTask;
     private final Gson gson;
     private String deviceKey = "";
     private String ipaddress = "";
+    final Map<String, RFListener> rfListeners = new HashMap<>();
 
     public RFBridgeHandler(Bridge thing, Gson gson) {
         super(thing);
@@ -85,15 +82,23 @@ public class RFBridgeHandler extends BaseBridgeHandler implements DeviceStateLis
                 account.registerStateListener(config.deviceId, this);
                 Runnable activateWs = () -> {
                     UiActive params = new UiActive();
-                    params.setUiActive(21600);
+                    params.setUiActive(60);
                     sendUpdate(gson.toJson(params), "uiActive", "");
                 };
-                wsTask = scheduler.scheduleWithFixedDelay(activateWs, 10, 21600, TimeUnit.SECONDS);
+                wsTask = scheduler.scheduleWithFixedDelay(activateWs, 10, 60, TimeUnit.SECONDS);
                 if (account.getThing().getStatus() == ThingStatus.ONLINE) {
                     updateStatus(ThingStatus.ONLINE);
                 }
             }
         }
+    }
+
+    public void addListener(String sensorid, RFListener listener) {
+        rfListeners.put(sensorid, listener);
+    }
+
+    public void removeListener(String sensorid) {
+        rfListeners.remove(sensorid);
     }
 
     @Override
@@ -156,7 +161,7 @@ public class RFBridgeHandler extends BaseBridgeHandler implements DeviceStateLis
         updateProperties(properties);
     }
 
-    private void sendUpdate(String params, String command, String seq) {
+    public void sendUpdate(String params, String command, String seq) {
         if (command.equals("uiActive")) {
             account.getApi().setStatusApi(params, config.deviceId, deviceKey);
         } else if (!command.contains("switch") && account.getAccountConfig().accessmode.equals("local")) {
@@ -175,22 +180,95 @@ public class RFBridgeHandler extends BaseBridgeHandler implements DeviceStateLis
     }
 
     private synchronized void updateState(Device device) {
-        if (device.getParams().getRssi() != null && this.thing.getChannel("rssi") != null) {
-            updateState(this.thing.getChannel("rssi").getUID(),
-                    new QuantityType<Power>(device.getParams().getRssi(), (DECIBEL_MILLIWATTS)));
-        }
-        if (device.getOfflineTime() != null && this.thing.getChannel("offlineTime") != null) {
-            updateState(this.thing.getChannel("offlineTime").getUID(), new StringType(device.getOfflineTime()));
-        }
-        if (device.getOnline() != null && this.thing.getChannel("online") != null) {
-            updateState(this.thing.getChannel("online").getUID(),
-                    new StringType(device.getOnline() ? "connected" : "disconnected"));
+        if (device.getParams().getCmd().equals("trigger")) {
+
+            String ch0 = device.getParams().getRfTrig0();
+            if (ch0 != null && rfListeners.get("0") != null) {
+                rfListeners.get("0").sensorTriggered(ch0);
+            }
+
+            String ch1 = device.getParams().getRfTrig1();
+            if (ch1 != null && rfListeners.get("1") != null) {
+                rfListeners.get("1").sensorTriggered(ch1);
+            }
+
+            String ch2 = device.getParams().getRfTrig2();
+            if (ch2 != null && rfListeners.get("2") != null) {
+                rfListeners.get("2").sensorTriggered(ch2);
+            }
+
+            String ch3 = device.getParams().getRfTrig3();
+            if (ch3 != null && rfListeners.get("3") != null) {
+                rfListeners.get("3").sensorTriggered(ch3);
+            }
+
+            String ch4 = device.getParams().getRfTrig4();
+            if (ch4 != null && rfListeners.get("4") != null) {
+                rfListeners.get("4").sensorTriggered(ch4);
+            }
+
+            String ch5 = device.getParams().getRfTrig5();
+            if (ch5 != null && rfListeners.get("5") != null) {
+                rfListeners.get("5").sensorTriggered(ch5);
+            }
+
+            String ch6 = device.getParams().getRfTrig6();
+            if (ch6 != null && rfListeners.get("6") != null) {
+                rfListeners.get("6").sensorTriggered(ch6);
+            }
+
+            String ch7 = device.getParams().getRfTrig7();
+            if (ch7 != null && rfListeners.get("7") != null) {
+                rfListeners.get("7").sensorTriggered(ch7);
+            }
+
+            String ch8 = device.getParams().getRfTrig8();
+            if (ch8 != null && rfListeners.get("8") != null) {
+                rfListeners.get("8").sensorTriggered(ch8);
+            }
+            String ch9 = device.getParams().getRfTrig9();
+            if (ch9 != null && rfListeners.get("9") != null) {
+                rfListeners.get("9").sensorTriggered(ch9);
+            }
+
+            String ch10 = device.getParams().getRfTrig10();
+            if (ch10 != null && rfListeners.get("10") != null) {
+                rfListeners.get("10").sensorTriggered(ch10);
+            }
+
+            String ch11 = device.getParams().getRfTrig11();
+            if (ch11 != null && rfListeners.get("11") != null) {
+                rfListeners.get("11").sensorTriggered(ch11);
+            }
+
+            String ch12 = device.getParams().getRfTrig12();
+            if (ch12 != null && rfListeners.get("12") != null) {
+                rfListeners.get("12").sensorTriggered(ch12);
+            }
+            String ch13 = device.getParams().getRfTrig13();
+            if (ch13 != null && rfListeners.get("13") != null) {
+                rfListeners.get("13").sensorTriggered(ch13);
+            }
+
+            String ch14 = device.getParams().getRfTrig14();
+            if (ch14 != null && rfListeners.get("14") != null) {
+                rfListeners.get("14").sensorTriggered(ch14);
+            }
+
+            String ch15 = device.getParams().getRfTrig15();
+            if (ch15 != null && rfListeners.get("15") != null) {
+                rfListeners.get("15").sensorTriggered(ch15);
+            }
         }
     }
 
     @Override
     public void cloudUpdate(Device device) {
         updateState(device);
+    }
+
+    public @Nullable Device getDevice() {
+        return account.getDevice(config.deviceId);
     }
 
     @Override
@@ -202,5 +280,10 @@ public class RFBridgeHandler extends BaseBridgeHandler implements DeviceStateLis
         Device device = new Device();
         device.setParams(gson.fromJson(message, Params.class));
         updateState(device);
+    }
+
+    @Override
+    public void consumption(String data) {
+        // TODO Auto-generated method stub
     }
 }

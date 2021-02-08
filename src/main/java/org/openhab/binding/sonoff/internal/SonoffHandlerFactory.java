@@ -17,6 +17,7 @@ import static org.openhab.binding.sonoff.internal.Constants.*;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.sonoff.internal.handler.AccountHandler;
 import org.openhab.binding.sonoff.internal.handler.RFBridgeHandler;
+import org.openhab.binding.sonoff.internal.handler.RFRemoteHandler;
 import org.openhab.binding.sonoff.internal.handler.SwitchHandler;
 import org.openhab.core.io.net.http.HttpClientFactory;
 import org.openhab.core.io.net.http.WebSocketFactory;
@@ -77,6 +78,8 @@ public class SonoffHandlerFactory extends BaseThingHandlerFactory {
             return new SwitchHandler(thing, gson);
         } else if (thingTypeUID.equals(THING_TYPE_28)) {
             return new RFBridgeHandler((Bridge) thing, gson);
+        } else if (thingTypeUID.equals(THING_TYPE_RF4) || thingTypeUID.equals(THING_TYPE_RF6)) {
+            return new RFRemoteHandler(thing, gson);
         }
 
         else {

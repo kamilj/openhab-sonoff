@@ -24,6 +24,10 @@
 				<label>IP Address</label>
 				<description>IP address of openhab for multicast packets from devices (may have more than one NIC)</description>
 			</parameter>
+			<parameter name="pollingInterval" type="text" required="true">
+				<label>Polling Interval</label>
+				<description>Polling Interval for non essential channels (rssi,online,energy usage,lastOffline)</description>
+			</parameter>
 			<parameter name="accessmode" type="text" required="true">
 				<label>Access Mode</label>
 				<default>"mixed"</default>
@@ -55,22 +59,39 @@
 		</config-description>
 	</bridge-type>
 
-	<thing-type id="remote4">
+	<thing-type id="rfremote4">
 		<supported-bridge-type-refs>
 			<bridge-type-ref id="28"/>
 		</supported-bridge-type-refs>
 		<label>Rf Remote</label>
 		<description>RF Remote</description>
 		<channels>
-			<channel id="switch" typeId="switch"/>
-			<channel id="offlineTime" typeId="offlineTime"/>
-			<channel id="online" typeId="online"/>
-			<channel id="rssi" typeId="rssi"/>
+			<channel id="button0" typeId="button0"/>
+			<channel id="button1" typeId="button1"/>
+			<channel id="button2" typeId="button2"/>
+			<channel id="button3" typeId="button3"/>
 		</channels>
 		<config-description>
-			<parameter name="remoteid" type="text" required="true">
-				<label>Remote ID</label>
-				<description>Remote ID</description>
+			<parameter name="id" type="text" required="true">
+				<label>ID</label>
+				<description>ID</description>
+			</parameter>
+		</config-description>
+	</thing-type>
+
+	<thing-type id="rfsensor">
+		<supported-bridge-type-refs>
+			<bridge-type-ref id="28"/>
+		</supported-bridge-type-refs>
+		<label>Rf Sensor</label>
+		<description>RF Sensor</description>
+		<channels>
+			<channel id="sensorTriggered" typeId="sensorTriggered"/>
+		</channels>
+		<config-description>
+			<parameter name="id" type="text" required="true">
+				<label>ID</label>
+				<description>ID</description>
 			</parameter>
 		</config-description>
 	</thing-type>
@@ -165,10 +186,16 @@
 		<supported-bridge-type-refs>
 			<bridge-type-ref id="account"/>
 		</supported-bridge-type-refs>
-		<label>SOCKET_POWER - Please let me know the model</label>
-		<description>SOCKET_POWER - Please let me know the model</description>
+		<label>POW</label>
+		<description>POW</description>
 		<channels>
 			<channel id="switch" typeId="switch"/>
+			<channel id="power" typeId="power"/>
+			<channel id="todayKwh" typeId="todayKwh"/>
+			<channel id="yesterdayKwh" typeId="yesterdayKwh"/>
+			<channel id="sevenKwh" typeId="sevenKwh"/>
+			<channel id="thirtyKwh" typeId="thirtyKwh"/>
+			<channel id="hundredKwh" typeId="hundredKwh"/>
 			<channel id="offlineTime" typeId="offlineTime"/>
 			<channel id="online" typeId="online"/>
 			<channel id="rssi" typeId="rssi"/>
@@ -302,6 +329,11 @@
 			<channel id="current" typeId="current"/>
 			<channel id="voltage" typeId="voltage"/>
 			<channel id="power" typeId="power"/>
+			<channel id="todayKwh" typeId="todayKwh"/>
+			<channel id="yesterdayKwh" typeId="yesterdayKwh"/>
+			<channel id="sevenKwh" typeId="sevenKwh"/>
+			<channel id="thirtyKwh" typeId="thirtyKwh"/>
+			<channel id="hundredKwh" typeId="hundredKwh"/>
 			<channel id="offlineTime" typeId="offlineTime"/>
 			<channel id="online" typeId="online"/>
 			<channel id="rssi" typeId="rssi"/>

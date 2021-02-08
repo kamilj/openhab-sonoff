@@ -24,15 +24,16 @@ import javax.jmdns.ServiceInfo;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.sonoff.internal.MainDiscovery;
 import org.openhab.binding.sonoff.internal.config.AccountConfig;
 import org.openhab.binding.sonoff.internal.connections.Api;
 import org.openhab.binding.sonoff.internal.connections.Lan;
 import org.openhab.binding.sonoff.internal.connections.Websocket;
 import org.openhab.binding.sonoff.internal.dto.api.Device;
 import org.openhab.binding.sonoff.internal.dto.api.Devices;
+import org.openhab.binding.sonoff.internal.dto.payloads.Consumption;
 import org.openhab.binding.sonoff.internal.listeners.ConnectionListener;
 import org.openhab.binding.sonoff.internal.listeners.DeviceStateListener;
-import org.openhab.binding.sonoff.internal.sonoffDiscoveryService;
 import org.openhab.core.io.net.http.HttpClientFactory;
 import org.openhab.core.io.net.http.WebSocketFactory;
 import org.openhab.core.thing.Bridge;
@@ -69,11 +70,13 @@ public class AccountHandler extends BaseBridgeHandler implements ConnectionListe
     private @Nullable ScheduledFuture<?> tokenTask;
     private @Nullable ScheduledFuture<?> pingTask;
     private @Nullable ScheduledFuture<?> connectionTask;
+    private @Nullable ScheduledFuture<?> deviceTask;
     private final Gson gson;
     private Boolean lanOnline = false;
     private Boolean wsOnline = false;
     private Boolean apiOnline = false;
     private String mode = "";
+    private Integer pollingInterval = -1;
     private final Map<String, DeviceStateListener> deviceStateListener = new HashMap<>();
     final Map<String, Device> deviceState = new HashMap<>();
 
@@ -87,7 +90,7 @@ public class AccountHandler extends BaseBridgeHandler implements ConnectionListe
 
     @Override
     public Collection<Class<? extends ThingHandlerService>> getServices() {
-        return Collections.singleton(sonoffDiscoveryService.class);
+        return Collections.singleton(MainDiscovery.class);
     }
 
     @Override
@@ -97,11 +100,19 @@ public class AccountHandler extends BaseBridgeHandler implements ConnectionListe
         initialize();
     }
 
+    public void addDevice(Device device) {
+        deviceState.put(device.getDeviceid(), device);
+    }
+
     @Override
     public void initialize() {
         config = this.getConfigAs(AccountConfig.class);
         mode = config.accessmode.toString();
-
+        if (config.pollingInterval < 30 && config.pollingInterval >= 0) {
+            pollingInterval = 30;
+        } else {
+            pollingInterval = config.pollingInterval;
+        }
         logger.debug("Starting Api");
         api = new Api(config, this, httpClientFactory, gson);
         api.start();
@@ -123,16 +134,42 @@ public class AccountHandler extends BaseBridgeHandler implements ConnectionListe
         };
         tokenTask = scheduler.scheduleWithFixedDelay(getToken, 6, 6, TimeUnit.HOURS);
 
+        if (pollingInterval != -1) {
+            Runnable refreshDevices = () -> {
+                if ((mode.equals("mixed") || mode.equals("cloud"))) {
+                    Devices devices = new Devices();
+                    devices = api.discover();
+                    for (int i = 0; i < devices.getDevicelist().size(); i++) {
+                        Device device = devices.getDevicelist().get(i);
+                        String deviceid = device.getDeviceid();
+                        Integer deviceUUID = device.getUiid();
+                        deviceState.put(deviceid, device);
+                        DeviceStateListener dl = deviceStateListener.get(deviceid);
+                        if (deviceUUID == 32 || deviceUUID == 5) {
+                            logger.debug("Device UUID:{}", deviceUUID);
+                            Consumption params = new Consumption();
+                            ws.getConsumption(gson.toJson(params), deviceid);
+                        }
+                        if (dl != null) {
+                            dl.cloudUpdate(device);
+                        }
+                    }
+                }
+            };
+            deviceTask = scheduler.scheduleWithFixedDelay(refreshDevices, pollingInterval, pollingInterval,
+                    TimeUnit.SECONDS);
+        }
+
         Runnable connect = () -> {
             logger.debug("Sonoff Connection Check Running");
             if (!apiOnline) {
                 api.getRegion();
                 api.login();
                 logger.debug("Performing Initial Discovery");
-                Devices devices = new Devices();
-                devices = api.discover();
-                for (int i = 0; i < devices.getDevicelist().size(); i++) {
-                    deviceState.put(devices.getDevicelist().get(i).getDeviceid(), devices.getDevicelist().get(i));
+                Devices newdevices = new Devices();
+                newdevices = api.discover();
+                for (int i = 0; i < newdevices.getDevicelist().size(); i++) {
+                    deviceState.put(newdevices.getDevicelist().get(i).getDeviceid(), newdevices.getDevicelist().get(i));
                 }
                 if ((mode.equals("mixed") || mode.equals("cloud"))) {
                     logger.debug("Initialising Cloud Connection");
@@ -153,7 +190,7 @@ public class AccountHandler extends BaseBridgeHandler implements ConnectionListe
                 }
             }
         };
-        connectionTask = scheduler.scheduleWithFixedDelay(connect, 10, 60, TimeUnit.SECONDS);
+        connectionTask = scheduler.scheduleWithFixedDelay(connect, 0, 60, TimeUnit.SECONDS);
         Runnable wsKeepAlive = () -> {
             if (wsOnline) {
                 ws.sendPing();
@@ -176,6 +213,10 @@ public class AccountHandler extends BaseBridgeHandler implements ConnectionListe
         if (connectionTask != null) {
             connectionTask.cancel(true);
             connectionTask = null;
+        }
+        if (deviceTask != null) {
+            deviceTask.cancel(true);
+            deviceTask = null;
         }
         if (ws != null) {
             ws.stop();
@@ -258,8 +299,10 @@ public class AccountHandler extends BaseBridgeHandler implements ConnectionListe
 
     @Override
     public void webSocketMessage(Device device) {
-        DeviceStateListener listener = deviceStateListener.get(device.getDeviceid());
-        listener.cloudUpdate(device);
+        if (deviceStateListener.get(device.getDeviceid()) != null) {
+            DeviceStateListener listener = deviceStateListener.get(device.getDeviceid());
+            listener.cloudUpdate(device);
+        }
     }
 
     public void onLanMessage(ServiceInfo serviceInfo) {
@@ -305,5 +348,13 @@ public class AccountHandler extends BaseBridgeHandler implements ConnectionListe
     @Override
     public void ApiconnectionOpen() {
         apiOnline = true;
+    }
+
+    @Override
+    public void webSocketConsumptionMessage(String deviceid, String data) {
+        if (deviceStateListener.get(deviceid) != null) {
+            DeviceStateListener listener = deviceStateListener.get(deviceid);
+            listener.consumption(data);
+        }
     }
 }
