@@ -10,24 +10,24 @@
 		<description>Switch</description>
 	</channel-type>
 	<channel-type id="switch0">
-		<item-type>Switch 0</item-type>
-		<label>Switch</label>
-		<description>Switch</description>
+		<item-type>Switch</item-type>
+		<label>Switch 0</label>
+		<description>Switch 0</description>
 	</channel-type>
 	<channel-type id="switch1">
-		<item-type>Switch 1</item-type>
-		<label>Switch</label>
-		<description>Switch</description>
+		<item-type>Switch</item-type>
+		<label>Switch 1</label>
+		<description>Switch 1</description>
 	</channel-type>
 	<channel-type id="switch2">
-		<item-type>Switch 2</item-type>
-		<label>Switch</label>
-		<description>Switch</description>
+		<item-type>Switch</item-type>
+		<label>Switch 2</label>
+		<description>Switch 2</description>
 	</channel-type>
 	<channel-type id="switch3">
-		<item-type>Switch 3</item-type>
-		<label>Switch</label>
-		<description>Switch</description>
+		<item-type>Switch</item-type>
+		<label>Switch 3</label>
+		<description>Switch 3</description>
 	</channel-type>
 
 	<channel-type id="color">
